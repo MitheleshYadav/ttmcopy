@@ -1,5 +1,5 @@
 import bg from '../src/assets/bg.png';
-import googleLogo from '../src/assets/google.png';
+
 
 function Login() {
   return (         

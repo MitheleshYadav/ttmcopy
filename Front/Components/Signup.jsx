@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import bg from '../src/assets/bg.png';
 import googleLogo from '../src/assets/google.png';
 
@@ -21,7 +22,7 @@ function Signup() {
             <h3>Login With Google</h3>
         </div>
         <div className='mt-5'>
-            <p>Already have an account? <a href="/login" className='text-blue-500'>Log In</a></p>
+            <p>Already have an account? <Link to="/login" className='text-blue-500'>Log In</Link></p>
         </div>
     </div>
   );

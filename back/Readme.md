@@ -1,0 +1,1 @@
+<!-- this is the ai chat bot where you can talk with the ai just like the normal person -->
