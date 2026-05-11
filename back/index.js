@@ -1,15 +1,14 @@
-import express from 'express'
+const express = require("express");
+const cors = require("cors")
+const app = express();
 
-const app  =  express()
+app.use(express.json());
+app.use(cors());
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
 
 
-
-
-
-
-
-
-
-var server = app.listen("8000", function(){
-    console.log("application is running...")
-})
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});
