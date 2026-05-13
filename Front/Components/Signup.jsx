@@ -9,20 +9,32 @@ function Signup() {
   const [pass, setPass]= useState("Your password");
 
   function submit(){
+
     const data = {
         user_name : name,
         user_email : email,
         user_password : pass
     }
-    const result = fetch('http://localhost:3000/',{
-        method : 'GET',
+
+    const result = fetch('http://localhost:3000/signup',{
+
+        method : 'POST',
+
         headers : {
-            'content-type' : 'application/JSON'
+            'Content-Type' : 'application/json'
         },
+
         body : JSON.stringify(data)
+
     })
-    result.then(window.alert("Its working")).catch(window.alert("NOT WORKING!!!"))
-  }
+
+    console.log(result)
+
+    result
+      .then(() => window.alert("Its working"))
+      .catch(() => window.alert("NOT WORKING!!!"))
+
+}
   return (         
     <div className='bg-cover bg-no-repeat min-h-screen w-full flex flex-col items-center justify-center' style={{backgroundImage: `url(${bg})`}}>
          <div className="text-black pb-15">
