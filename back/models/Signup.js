@@ -1,6 +1,6 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose");
 
-const  signupSchema = new mongoose.Schema({
+const signupSchema = new mongoose.Schema({
     name : {
         type : String,
         required : true
@@ -16,4 +16,4 @@ const  signupSchema = new mongoose.Schema({
     }
 }, {timestamps : true })
 
-export const Signup = mongoose.model("Signup", signupSchema)
+module.exports = mongoose.model("Signup", signupSchema)

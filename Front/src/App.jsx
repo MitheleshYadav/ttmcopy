@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from '../Components/Landing.jsx'
 import Signup from '../Components/Signup.jsx'
 import Login from '../Components/Login.jsx'
+import Location from '../Components/Location.jsx'
 
 function App() {
   return(
