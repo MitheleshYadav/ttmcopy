@@ -2,39 +2,45 @@ import { Link } from "react-router-dom";
 import bg from "../src/assets/bg.png";
 import googleLogo from "../src/assets/google.png";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 function Signup() {
+  const navigate = useNavigate();
   const [name, setName] = useState("Your name");
   const [email, setEmail] = useState("Your Email");
   const [pass, setPass] = useState("Your password");
 
   function submit() {
+
     const data = {
       user_name: name,
       user_email: email,
       user_password: pass,
     };
 
-    const result = fetch("http://localhost:3000/signup", {
+    fetch("http://localhost:3000/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
-    result
+    })
+
       .then((response) => {
+        if(response.status == 201){
+           navigate("/location", {
+          state: {
+            username: name,
+          },
+        });
+        }
         console.log(response.status);
         return response.json();
-      })
-      .then((response_data) => {
-        console.log(response_data);
-      })
-      .catch(() => {
+      }).catch((err) => {
         window.alert("NOT WORKING!!!");
+        console.error(err);
       });
-      
   }
   return (
     <div
