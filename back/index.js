@@ -2,24 +2,55 @@
 const connectDb  = require("./config/db");
 const app = require("./utils/app");
 const dotenv = require('dotenv');
-const Signup = require("./models/Signup");
+const User = require("./models/User");
+const { connect } = require("mongoose");
 
 dotenv.config({
   path : "./.env"
 })
 
+connectDb();
+   
 
-async function connectionMade(req, res, next){
-  await connectDb();
-  console.log("Connection made!!!")
-  next();
-}       
+async function userExists(req, res, next){
+  try{
+     const query =  await User.findOne({
+      email : req.body.user_email
+     })
+     if(query){
+       next();
+     } else {
+       res.status(404).json({ message: "User not found" });
+     }
+   }catch(err){
+    console.error(err);
+   }
+   
+}
 
-app.post("/signup", connectionMade, async(req, res) => {
+app.post("/login", userExists, async(req, res)=>{
+      try{
+        const password = req.body.user_password;
+        const email = req.body.user_email;
+        const query = await User.findOne({
+          email : email
+        })
+        console.log(query);
+        console.log(query.name);
+        if(query.password === password){
+          res.status(201).json({ message: "Login successful", username: query.name });
+        }else{
+          res.status(401).json({ message: "Invalid password" });
+        }
+      }catch(err){
+        console.error(err);
+      }
+})
+
+app.post("/signup", async(req, res) => {
   try {
-
     const { user_name, user_email, user_password } = req.body;
-    const newUser = new Signup({
+    const newUser = new User({
       name: user_name,
       email: user_email,
       password: user_password,
