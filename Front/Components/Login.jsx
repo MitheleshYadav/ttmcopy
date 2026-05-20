@@ -29,13 +29,13 @@ function submitForm(){
 
   .then((data) => {
 
-    console.log(data);
+    localStorage.setItem("token", data.token);
 
     if(data.message === "Login successful"){
 
       navigate("/location", {
         state: {
-          username: data.username,
+          username: data.username
         },
       });
 
