@@ -4,8 +4,6 @@ const app = require("./utils/app");
 const dotenv = require('dotenv');
 const User = require("./models/User");
 const { connect } = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 dotenv.config({
   path : "./.env"
@@ -30,47 +28,26 @@ async function userExists(req, res, next){
    
 }
 
-async function hashPassword(req, res, next){
-  try{
-    const plainPassword = req.body.user_password;
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
-    req.body.user_password = hashedPassword;
-    next();
-  }catch(err){
-    console.error(err);
-  }
-}
-
 app.post("/login", userExists, async(req, res)=>{
       try{
         const password = req.body.user_password;
         const email = req.body.user_email;
         const query = await User.findOne({
           email : email
-        });
-        const isMatch = await bcrypt.compare(password, query.password);
-        console.log(isMatch);
-        if(!isMatch){
-          res.status(401).json({ message: "Invalid credentials" });
-        } 
-        const token = jwt.sign(
-          {
-            userId : query._id,
-            username : query.name
-          }, process.env.JWT_SECRET, 
-          { expiresIn: "7d" }
-        )
-        res.status(200).json({
-          message : "Login successful",
-          token
         })
+        console.log(query);
+        console.log(query.name);
+        if(query.password === password){
+          res.status(201).json({ message: "Login successful", username: query.name });
+        }else{
+          res.status(401).json({ message: "Invalid password" });
+        }
       }catch(err){
         console.error(err);
       }
 })
 
-app.post("/signup", hashPassword, async(req, res) => {
+app.post("/signup", async(req, res) => {
   try {
     const { user_name, user_email, user_password } = req.body;
     const newUser = new User({
@@ -86,8 +63,6 @@ app.post("/signup", hashPassword, async(req, res) => {
   } 
 
 })
-
-
 
 
 app.listen(3000, () => {
