@@ -35,8 +35,6 @@ app.post("/login", userExists, async(req, res)=>{
         const query = await User.findOne({
           email : email
         })
-        console.log(query);
-        console.log(query.name);
         if(query.password === password){
           res.status(201).json({ message: "Login successful", username: query.name });
         }else{
@@ -69,7 +67,7 @@ app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
 
-//connecting frinend from the backend
+//connecting frontend from the backend
 //setting up the cinfigration file
 //setting up the database connection
 //creating the model and schema for the database
