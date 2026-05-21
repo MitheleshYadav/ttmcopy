@@ -11,37 +11,61 @@ function Signup() {
   const [pass, setPass] = useState("");
 
   function submit() {
-    const data = {
-      user_name: name,
-      user_email: email,
-      user_password: pass,
-    };
 
-    fetch("http://192.168.1.23:3000/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
+  navigator.geolocation.getCurrentPosition(
+
+    (position) => {
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      const data = {
+        user_name: name,
+        user_email: email,
+        user_password: pass,
+        latitude: latitude,
+        longitude: longitude,
+      };
+
+      fetch("http://192.168.1.23:3000/signup", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(data),
+
+      })
       .then((response) => {
-        if (response.status === 201) {
+        return response.json();
+      })
+      .then((result) => {
+        localStorage.setItem("token", result.token);
+
+        if (result.message === "User created successfully") {
           navigate("/location", {
             state: {
-              username: name,
+              username: result.username,
             },
           });
         }
-
-        console.log(response.status);
-        return response.json();
       })
-
       .catch((err) => {
-        window.alert("NOT WORKING!!!");
-        console.error(err);
+        console.log(err);
       });
-  }
+
+    },
+
+    (error) => {
+      console.log(error);
+      alert("Location permission denied");
+    }
+
+  );
+
+}
 
   return (
     <div

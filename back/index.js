@@ -6,12 +6,15 @@ const { connect } = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Location = require("./models/Location");
+const authenticateToken = require("./middlewares/auth");
 
 dotenv.config({
   path: "./.env",
 });
 
 connectDb();
+
+//--------------------  MIDDLEWARES  --------------------//
 
 async function hashPassword(req, res, next) {
   try {
@@ -42,6 +45,8 @@ async function userExists(req, res, next) {
   }
 }
 
+//--------------------  LOGIN API  --------------------//
+
 app.post("/login", userExists, async (req, res) => {
   try {
     const password = req.body.user_password;
@@ -69,6 +74,8 @@ app.post("/login", userExists, async (req, res) => {
   }
 });
 
+//--------------------  SIGNUP API  --------------------//
+
 app.post("/signup", hashPassword, async (req, res) => {
   try {
     const { user_name, user_email, user_password } = req.body;
@@ -78,16 +85,64 @@ app.post("/signup", hashPassword, async (req, res) => {
       password: user_password,
     });
     await newUser.save();
-    res.status(201).json({ message: "User created successfully" });
+    const newLocation = new Location({
+      user_id: newUser._id,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
+    });
+    await newLocation.save();
+    const token = jwt.sign(
+      { userId: newUser._id, username: newUser.name },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+    res
+      .status(201)
+      .json({
+        message: "User created successfully",
+        token: token,
+        username: newUser.name,
+      });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
+//--------------------  LOCATION API  --------------------//
+
+app.get("/location", authenticateToken, async (req, res) => {
+
+  try {
+
+    const locations = await Location.find(
+      {},
+      {
+        latitude: 1,
+        longitude: 1,
+        _id: 0,
+      }
+    );
+
+    res.status(200).json({ locations });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+
+  }
+
+});
+
+//--------------------  SERVER LISTEN  --------------------//
+
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server running");
-});  
+});
 
 //connecting frontend from the backend
 //setting up the cinfigration file

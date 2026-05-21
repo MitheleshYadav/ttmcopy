@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { User, ChevronDown } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { UNSAFE_FetchersContext, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 
@@ -8,40 +8,35 @@ function Location() {
   const location = useLocation();
   const username = location.state?.username || "User";
 
-  // LIVE LOCATION STATE
-  const [currentPosition, setCurrentPosition] = useState([
-    28.503962,
-    77.301826,
-  ]);
+  const [locations, setLocations] = useState([]);
 
   // GET LIVE LOCATION WHEN PAGE LOADS
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-
-        console.log(latitude, longitude);
-
-        setCurrentPosition([latitude, longitude]);
+    const token = localStorage.getItem("token");
+    fetch("http://192.168.1.23:3000/location", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-
-      (error) => {
-        console.log(error);
-        alert("Location access denied");
-      }
-    );
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.locations);
+        setLocations(data.locations);
+        console.log("location",locations);
+      })
+      .catch((err) => {
+        window.alert("Failed to fetch location data");
+        console.error(err);
+      });
   }, []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#312E81] p-3 sm:p-4 md:p-6">
-
       {/* Outer Glass Container */}
       <div className="h-[calc(100vh-24px)] sm:h-[calc(100vh-32px)] md:h-[calc(100vh-48px)] w-full rounded-2xl md:rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-3 sm:p-4 md:p-6 flex flex-col gap-4 md:gap-6">
-
         {/* Navbar */}
         <div className="w-full rounded-2xl md:rounded-[30px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 md:px-8 md:py-6">
-
           {/* Left Side */}
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
@@ -59,7 +54,6 @@ function Location() {
 
           {/* Profile Button */}
           <button className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition duration-300">
-
             <User size={20} />
 
             <span className="text-sm sm:text-base md:text-lg font-medium">
@@ -72,10 +66,9 @@ function Location() {
 
         {/* Map */}
         <div className="flex-1 rounded-2xl md:rounded-[35px] overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] min-h-[300px]">
-
           <MapContainer
             className="h-full w-full"
-            center={currentPosition}
+            center={[28.6139, 77.2090]}
             zoom={12}
             zoomControl={false}
           >
@@ -84,16 +77,16 @@ function Location() {
               attribution="&copy; OpenStreetMap contributors"
             />
 
-            {/* LIVE LOCATION MARKER */}
-            <Marker position={currentPosition}>
-              <Popup>
-                You are here {username} 📍
-              </Popup>
-            </Marker>
-
+            {locations.map((location, index) => (
+              <Marker
+                key={index}
+                position={[location.latitude, location.longitude]}
+              >
+                <Popup>User Location 📍</Popup>
+              </Marker>
+            ))}
           </MapContainer>
         </div>
-
       </div>
     </div>
   );
