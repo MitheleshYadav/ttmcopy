@@ -5,6 +5,7 @@ const User = require("./models/User");
 const { connect } = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Location = require("./models/Location");
 
 dotenv.config({
   path: "./.env",
@@ -84,9 +85,9 @@ app.post("/signup", hashPassword, async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+app.listen(3000, "0.0.0.0", () => {
+  console.log("Server running");
+});  
 
 //connecting frontend from the backend
 //setting up the cinfigration file

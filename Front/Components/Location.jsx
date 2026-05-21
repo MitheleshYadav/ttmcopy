@@ -1,70 +1,82 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { User, ChevronDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 
 function Location() {
-    const location = useLocation();
-    const username = location.state?.username || "User";
-    const marker = [
-    {
-      geocode: [28.5286, 77.2883],
-      popup: "This is the location of Sarita Vihar",
-    },
-    {
-      geocode: [28.5035, 77.3005],
-      popup: "This is the location of Badarpur",
-    },
-    {
-      geocode: [28.4934, 77.3033],
-      popup: "This is the location of Badarpur metro station",
-    },
-  ];
+  const location = useLocation();
+  const username = location.state?.username || "User";
+
+  // LIVE LOCATION STATE
+  const [currentPosition, setCurrentPosition] = useState([
+    28.503962,
+    77.301826,
+  ]);
+
+  // GET LIVE LOCATION WHEN PAGE LOADS
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        console.log(latitude, longitude);
+
+        setCurrentPosition([latitude, longitude]);
+      },
+
+      (error) => {
+        console.log(error);
+        alert("Location access denied");
+      }
+    );
+  }, []);
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#312E81] p-6 overflow-hidden">
-      
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#312E81] p-3 sm:p-4 md:p-6">
+
       {/* Outer Glass Container */}
-      <div className="h-full w-full rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-6 flex flex-col gap-6">
+      <div className="h-[calc(100vh-24px)] sm:h-[calc(100vh-32px)] md:h-[calc(100vh-48px)] w-full rounded-2xl md:rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-3 sm:p-4 md:p-6 flex flex-col gap-4 md:gap-6">
 
         {/* Navbar */}
-        <div className="w-full min-h-[95px] rounded-[30px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex items-center justify-between px-8">
-          
+        <div className="w-full rounded-2xl md:rounded-[30px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 md:px-8 md:py-6">
+
           {/* Left Side */}
           <div>
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
               Hi, {username} 👋
             </h1>
 
             <div className="flex items-center gap-2 mt-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
 
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-300 text-sm sm:text-base md:text-lg">
                 Welcome back! You are online.
               </p>
             </div>
           </div>
 
           {/* Profile Button */}
-          <button className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition duration-300">
-            
-            <User size={22} />
+          <button className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition duration-300">
 
-            <span className="text-lg font-medium">
+            <User size={20} />
+
+            <span className="text-sm sm:text-base md:text-lg font-medium">
               Profile
             </span>
 
-            <ChevronDown size={20} />
+            <ChevronDown size={18} />
           </button>
         </div>
 
-        {/* Map Container */}
-        <div className="flex-1 rounded-[35px] overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-          
+        {/* Map */}
+        <div className="flex-1 rounded-2xl md:rounded-[35px] overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] min-h-[300px]">
+
           <MapContainer
             className="h-full w-full"
-            center={[28.503962, 77.301826]}
-            zoom={13}
+            center={currentPosition}
+            zoom={12}
             zoomControl={false}
           >
             <TileLayer
@@ -72,13 +84,16 @@ function Location() {
               attribution="&copy; OpenStreetMap contributors"
             />
 
-            {marker.map((marker, index) => (
-              <Marker key={index} position={marker.geocode}>
-                <Popup>{marker.popup}</Popup>
-              </Marker>
-            ))}
+            {/* LIVE LOCATION MARKER */}
+            <Marker position={currentPosition}>
+              <Popup>
+                You are here {username} 📍
+              </Popup>
+            </Marker>
+
           </MapContainer>
         </div>
+
       </div>
     </div>
   );
