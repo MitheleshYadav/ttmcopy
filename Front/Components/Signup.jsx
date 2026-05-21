@@ -23,8 +23,6 @@ function Signup() {
       user_name: name,
       user_email: email,
       user_password: pass,
-      latitude: latitude,
-      longitude: longitude,
     };
 
     fetch("http://192.168.1.23:3000/signup", {
@@ -48,8 +46,8 @@ function Signup() {
       })
 
       .catch((err) => {
-        window.alert(err.message);
-        console.error(err);
+          window.alert(err.message);
+          console.error(err);
       });
   }
 
