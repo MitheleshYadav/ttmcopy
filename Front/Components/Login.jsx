@@ -8,38 +8,52 @@ function Login() {
   const navigate = useNavigate();
 
   function submitForm() {
-    const data = {
-      user_email: email,
-      user_password: pass,
-    };
 
-    console.log(data);
+    navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const data = {
+        user_email: email,
+        user_password: pass,
+        latitude: latitude,
+        longitude: longitude,
+      };
+      console.log(data);
 
-    fetch("http://192.168.1.23:3000/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
+      fetch("http://192.168.1.23:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        localStorage.setItem("token", result.token);
 
-      .then((data) => {
-        localStorage.setItem("token", data.token);
-
-        if (data.message === "Login successful") {
+        if (result.message === "Login successful") {
           navigate("/location", {
             state: {
-              username: data.username,
+              username: result.username,
             },
           });
         }
       })
-
       .catch((err) => {
-        window.alert("NOT WORKING!!!");
-        console.error(err);
+        console.log(err);
       });
+
+    },
+
+    (error) => {
+      console.log(error);
+      alert("Location permission denied");
+    }
+
+  );
   }
 
   return (

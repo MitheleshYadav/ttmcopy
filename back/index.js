@@ -1,11 +1,14 @@
 const connectDb = require("./config/db");
-const app = require("./utils/app");
-const dotenv = require("dotenv");
+const Location = require("./models/Location");
 const User = require("./models/User");
 const { connect } = require("mongoose");
+
+const app = require("./utils/app");
+
+const dotenv = require("dotenv");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Location = require("./models/Location");
+
 const authenticateToken = require("./middlewares/auth");
 
 dotenv.config({
@@ -54,6 +57,8 @@ app.post("/login", userExists, async (req, res) => {
     const query = await User.findOne({
       email: email,
     });
+    console.log("query", query);
+    await Location.updateOne({ user_id: query._id }, { $set: { latitude: req.body.latitude, longitude: req.body.longitude } });
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
       const token = jwt.sign(
