@@ -120,7 +120,7 @@ app.post("/signup", hashPassword, async (req, res) => {
 app.get("/location", authenticateToken, async (req, res) => {
   try {
     const locations = await Location.find(
-      {},
+      {isOnline: true},
       {
         latitude: 1,
         longitude: 1,
