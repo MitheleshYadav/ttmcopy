@@ -58,9 +58,9 @@ app.post("/login", userExists, async (req, res) => {
       email: email,
     });
     console.log("query", query);
-    await Location.updateOne({ user_id: query._id }, { $set: { latitude: req.body.latitude, longitude: req.body.longitude } });
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
+      await Location.updateOne({ user_id: query._id }, { $set: { latitude: req.body.latitude, longitude: req.body.longitude , isOnline: true } });
       const token = jwt.sign(
         { userId: query._id, username: query.name },
         process.env.JWT_SECRET,
@@ -94,6 +94,7 @@ app.post("/signup", hashPassword, async (req, res) => {
       user_id: newUser._id,
       latitude: req.body.latitude,
       longitude: req.body.longitude,
+      isOnline: true,
     });
     await newLocation.save();
     const token = jwt.sign(
@@ -117,7 +118,6 @@ app.post("/signup", hashPassword, async (req, res) => {
 //--------------------  LOCATION API  --------------------//
 
 app.get("/location", authenticateToken, async (req, res) => {
-
   try {
 
     const locations = await Location.find(
@@ -127,7 +127,8 @@ app.get("/location", authenticateToken, async (req, res) => {
         longitude: 1,
         _id: 0,
       }
-    );
+    ).populate("user_id");
+    console.log("locations", locations);
 
     res.status(200).json({ locations });
 
@@ -141,6 +142,21 @@ app.get("/location", authenticateToken, async (req, res) => {
 
   }
 
+});
+
+
+//--------------------  LOGOUT API  --------------------//
+
+app.get("/location/logout", authenticateToken, async (req, res) => {
+  try {
+    await Location.updateOne({ user_id: req.user.userId }, { $set: { isOnline: false } });
+    res.status(200).json({ message: "Logout successful" });
+  }catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 });
 
 //--------------------  SERVER LISTEN  --------------------//

@@ -1,10 +1,12 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { User, ChevronDown } from "lucide-react";
+import { User, ChevronDown, Settings, LogOut } from "lucide-react";
 import { UNSAFE_FetchersContext, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
+import { useNavigate } from "react-router-dom";
 
 function Location() {
+  const navigate = useNavigate();
   const location = useLocation();
   const username = location.state?.username || "User";
 
@@ -23,7 +25,7 @@ function Location() {
       .then((data) => {
         console.log(data.locations);
         setLocations(data.locations);
-        console.log("location",locations);
+        console.log("location", locations);
       })
       .catch((err) => {
         window.alert("Failed to fetch location data");
@@ -31,13 +33,31 @@ function Location() {
       });
   }, []);
 
+  function logout() {
+    fetch("http://192.168.1.23:3000/location/logout",{
+      method :"GET",
+      headers : {
+        Authorization : `Bearer ${localStorage.getItem("token")}`,
+      }
+    }).then((response) => {
+      if(response.status === 200){
+        localStorage.removeItem("token");
+        navigate("/login");
+      }else{
+        window.alert("Logout failed");
+      }
+    }).catch((err) => {
+      window.alert("Logout failed");
+      console.error(err);
+    });
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#312E81] p-3 sm:p-4 md:p-6">
       {/* Outer Glass Container */}
       <div className="h-[calc(100vh-24px)] sm:h-[calc(100vh-32px)] md:h-[calc(100vh-48px)] w-full rounded-2xl md:rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.6)] p-3 sm:p-4 md:p-6 flex flex-col gap-4 md:gap-6">
         {/* Navbar */}
-        <div className="w-full rounded-2xl md:rounded-[30px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 md:px-8 md:py-6">
-          {/* Left Side */}
+        <div className="relative z-50 w-full rounded-2xl md:rounded-[30px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 md:px-8 md:py-6">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
               Hi, {username} 👋
@@ -53,22 +73,41 @@ function Location() {
           </div>
 
           {/* Profile Button */}
-          <button className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition duration-300">
-            <User size={20} />
+          <div className="relative group">
+            {/* Button */}
+            <button className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition duration-300">
+              <span className="text-sm sm:text-base md:text-lg font-medium">
+                Menu
+              </span>
 
-            <span className="text-sm sm:text-base md:text-lg font-medium">
-              Profile
-            </span>
+              <ChevronDown size={18} />
+            </button>
 
-            <ChevronDown size={18} />
-          </button>
+            {/* Dropdown */}
+            <ul className="absolute z-50 top-full right-0 mt-2 w-48 bg-[#1E293B] border border-white/10 rounded-lg shadow-lg p-3 text-gray-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+              <li className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-md cursor-pointer">
+                <User size={20} />
+                Profile
+              </li>
+
+              <li className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-md cursor-pointer">
+                <Settings size={20} />
+                Setting
+              </li>
+
+              <li className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-md cursor-pointer" onClick={logout}>
+                <LogOut size={20} />
+                Logout
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Map */}
-        <div className="flex-1 rounded-2xl md:rounded-[35px] overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] min-h-[300px]">
+        <div className="flex-1 rounded-2xl md:rounded-[35px] border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] min-h-[300px] overflow-hidden relative z-0">
           <MapContainer
             className="h-full w-full"
-            center={[28.6139, 77.2090]}
+            center={[28.6139, 77.209]}
             zoom={12}
             zoomControl={false}
           >

@@ -6,10 +6,6 @@ const locationSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-    name: {
-        type: mongoose.Schema.Types.String,
-        required: true,
-    },
     latitude: {
         type: Number,
         required: true,
