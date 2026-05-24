@@ -6,6 +6,10 @@ const locationSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    name: {
+        type: mongoose.Schema.Types.String,
+        required: true,
+    },
     latitude: {
         type: Number,
         required: true,
@@ -13,6 +17,10 @@ const locationSchema = new mongoose.Schema({
     longitude: {
         type: Number,
         required: true,
+    },
+    isOnline :{
+        type : Boolean,
+        default : true,
     }
 }, {timestamps : true })
 
