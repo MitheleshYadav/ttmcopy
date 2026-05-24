@@ -119,29 +119,25 @@ app.post("/signup", hashPassword, async (req, res) => {
 
 app.get("/location", authenticateToken, async (req, res) => {
   try {
-
     const locations = await Location.find(
       {},
       {
         latitude: 1,
         longitude: 1,
+        user_id: 1,
         _id: 0,
-      }
-    ).populate("user_id");
+      },
+    ).populate("user_id", "name");
     console.log("locations", locations);
 
     res.status(200).json({ locations });
-
   } catch (err) {
-
     console.error(err);
 
     res.status(500).json({
       message: "Server error",
     });
-
   }
-
 });
 
 
