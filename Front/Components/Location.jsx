@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { User, ChevronDown, Settings, LogOut } from "lucide-react";
-import { UNSAFE_FetchersContext, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
@@ -8,13 +8,16 @@ import { useNavigate } from "react-router-dom";
 function Location() {
   const navigate = useNavigate();
   const location = useLocation();
-  const username = location.state?.username || "User";
+  const username = location.state.username;
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   const [locations, setLocations] = useState([]);
 
   // GET LIVE LOCATION WHEN PAGE LOADS
-  useEffect(() => {
+
+  const fetchLocations = () => {
     const token = localStorage.getItem("token");
+
     fetch("http://192.168.1.23:3000/location", {
       method: "GET",
       headers: {
@@ -23,33 +26,60 @@ function Location() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data.locations);
         setLocations(data.locations);
-        console.log("location", locations);
       })
       .catch((err) => {
-        window.alert("Failed to fetch location data");
         console.error(err);
       });
+  };
+
+  useEffect(() => {
+    fetchLocations();
+
+    const interval = setInterval(() => {
+      fetchLocations();
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCurrentLocation({
+          lat: position.coords.latitude,
+          long: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.log(error.message);
+      },
+    );
+  }, []);
+
+  if (!currentLocation) {
+    return <div>Loading...</div>;
+  }
+
   function logout() {
-    fetch("http://192.168.1.23:3000/location/logout",{
-      method :"GET",
-      headers : {
-        Authorization : `Bearer ${localStorage.getItem("token")}`,
-      }
-    }).then((response) => {
-      if(response.status === 200){
-        localStorage.removeItem("token");
-        navigate("/login");
-      }else{
+    fetch("http://192.168.1.23:3000/location/logout", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else {
+          window.alert("Logout failed");
+        }
+      })
+      .catch((err) => {
         window.alert("Logout failed");
-      }
-    }).catch((err) => {
-      window.alert("Logout failed");
-      console.error(err);
-    });
+        console.error(err);
+      });
   }
 
   return (
@@ -95,7 +125,10 @@ function Location() {
                 Setting
               </li>
 
-              <li className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-md cursor-pointer" onClick={logout}>
+              <li
+                className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-md cursor-pointer"
+                onClick={logout}
+              >
                 <LogOut size={20} />
                 Logout
               </li>
@@ -107,8 +140,8 @@ function Location() {
         <div className="flex-1 rounded-2xl md:rounded-[35px] border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] min-h-[300px] overflow-hidden relative z-0">
           <MapContainer
             className="h-full w-full"
-            center={[28.6139, 77.209]}
-            zoom={12}
+            center={[currentLocation.lat, currentLocation.long]}
+            zoom={15}
             zoomControl={false}
           >
             <TileLayer
@@ -121,7 +154,9 @@ function Location() {
                 key={index}
                 position={[location.latitude, location.longitude]}
               >
-                <Popup>User Location 📍</Popup>
+                <Popup className=" color:red">
+                  You are here 📍 {location.user_id.name}
+                </Popup>
               </Marker>
             ))}
           </MapContainer>
