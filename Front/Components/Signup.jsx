@@ -45,11 +45,7 @@ function Signup() {
         localStorage.setItem("token", result.token);
 
         if (result.message === "User created successfully") {
-          navigate("/location", {
-            state: {
-              username: result.username,
-            },
-          });
+          navigate("/Details");
         }
       })
       .catch((err) => {

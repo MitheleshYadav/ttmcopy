@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import "leaflet/dist/leaflet.css";
+import Post from "./Post";
 
 function Location() {
   const location = useLocation();
@@ -192,7 +193,7 @@ function Location() {
         {/* MAIN */}
         <div className="flex-1 flex flex-col gap-4 w-full lg:ml-0">
           {/* TOP BAR */}
-          <div className="bg-white rounded-[24px] border border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white rounded-[24px] border border-gray-200 px-4 md:px-6 py-4 flex items-center shadow-sm">
             <div className="flex items-center gap-3">
               {/* MOBILE MENU */}
               <button
@@ -211,21 +212,6 @@ function Location() {
                   Welcome back! You are online.
                 </p>
               </div>
-            </div>
-
-            {/* RIGHT */}
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="hidden sm:flex bg-[#F7F7F7] px-4 py-2 rounded-xl items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-
-                <span className="text-gray-700 font-medium text-sm">
-                  128 online
-                </span>
-              </div>
-
-              <button className="w-10 h-10 md:w-11 md:h-11 rounded-xl border border-gray-200 flex items-center justify-center">
-                <Bell size={20} />
-              </button>
             </div>
           </div>
 
@@ -275,7 +261,7 @@ function Location() {
 
                 <input
                   type="text"
-                  placeholder="What's happening nearby?"
+                  placeholder="What's on your mind?"
                   value={post}
                   onChange={(e) => setPost(e.target.value)}
                   className="flex-1 bg-transparent outline-none text-gray-700 text-sm md:text-base"
@@ -290,40 +276,7 @@ function Location() {
             </div>
 
             {/* POSTS */}
-            <div className="mt-4 flex flex-col gap-3">
-              {/* POST CARD */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                {/* LEFT */}
-                <div className="flex gap-3">
-                  <img
-                    src="https://i.pravatar.cc/101"
-                    alt="profile"
-                    className="w-12 h-12 rounded-full"
-                  />
-
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-semibold text-violet-600">
-                        Rahul
-                      </h1>
-                    </div>
-
-                    <p className="text-gray-800 mt-1 font-medium text-sm md:text-base">
-                      Hey, anyone up for coffee? ☕
-                    </p>
-
-                    <p className="text-xs md:text-sm text-gray-400 mt-1">
-                      Connaught Place, New Delhi 
-                    </p>
-                  </div>
-                </div>
-
-                {/* BUTTON */}
-                <button className="border border-violet-200 text-violet-600 hover:bg-violet-50 transition px-5 py-3 rounded-xl font-medium w-full md:w-auto">
-                  Send Request
-                </button>
-              </div>
-            </div>
+            <Post props={{ name: "John Doe" }}></Post>
           </div>
         </div>
       </div>

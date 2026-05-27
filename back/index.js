@@ -1,6 +1,7 @@
 const connectDb = require("./config/db");
 const Location = require("./models/Location");
 const User = require("./models/User");
+const UserDetails = require("./models/UserDetails");
 const { connect } = require("mongoose");
 
 const app = require("./utils/app");
@@ -154,6 +155,36 @@ app.get("/location/logout", authenticateToken, async (req, res) => {
     });
   }
 });
+
+
+//----------------------------  DETAILS API  --------------------//
+
+app.post("/details", authenticateToken, async (req, res) => {
+  try{
+    console.log("req.body", req.body);
+    console.log("req.user", req.user);
+
+    const profile_name = req.body.profile_name;
+    const about = req.body.about;
+    const userDetails = new UserDetails({
+      user_id : req.user.userId,
+      profile_name : profile_name,
+      about : about
+    })
+    await userDetails.save();
+    res.status(201).json({
+      message : "Details saved successfully"
+    })
+  }catch(err){
+    console.error("Error saving details:", err);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+});
+
+
+
 
 //--------------------  SERVER LISTEN  --------------------//
 
