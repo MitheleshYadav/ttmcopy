@@ -129,7 +129,7 @@ app.get("/location", authenticateToken, async (req, res) => {
         _id: 0,
       },
     ).populate("user_id", "name");
-    console.log("locations", locations);
+    console.log("locations areeeeeeee:-     ", locations);
 
     res.status(200).json({ locations });
   } catch (err) {

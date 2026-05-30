@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
+import { jwtDecode } from "jwt-decode";
 import {
   Map,
   Bell,
@@ -10,21 +10,25 @@ import {
   X,
 } from "lucide-react";
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import "leaflet/dist/leaflet.css";
 import Post from "./Post";
 
 function Location() {
-  const location = useLocation();
-
-  const username = location.state.username;
-
+  const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [locations, setLocations] = useState([]);
   const [post, setPost] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const getUsernameFromToken = () => {
+    const token = localStorage.getItem("token");
+    console.log("Token in getUsernameFromToken:", token);
+    const decoded = jwtDecode(token);
+    return decoded.username;
+  };
 
   // FETCH LOCATIONS
   const fetchLocations = () => {
@@ -40,6 +44,7 @@ function Location() {
       .then((response) => response.json())
 
       .then((data) => {
+        console.log("Fetched locations:", data.locations);
         setLocations(data.locations);
       })
 
@@ -131,37 +136,29 @@ function Location() {
             {/* MENU */}
             <div className="flex flex-col gap-3">
               {/* MAP */}
-              <button className="flex items-center gap-3 bg-violet-100 text-violet-600 px-4 py-3 rounded-xl font-medium">
+              <button onClick={() => navigate("/location")} className="flex items-center gap-3 bg-violet-100 text-violet-600 px-4 py-3 rounded-xl font-medium">
                 <Map size={20} />
                 Map
               </button>
 
               {/* REQUESTS */}
-              <button className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
+              <button onClick={() => navigate("/requests")} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
                 <div className="flex items-center gap-3 text-gray-700">
                   <Bell size={20} />
                   Requests
                 </div>
-
-                <div className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  3
-                </div>
               </button>
 
               {/* CHAT */}
-              <button className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
+              <button onClick={() => navigate("/chat")} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
                 <div className="flex items-center gap-3 text-gray-700">
                   <MessageCircle size={20} />
                   Chat
                 </div>
-
-                <div className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  2
-                </div>
               </button>
 
               {/* SETTINGS */}
-              <button className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-gray-700">
+              <button onClick={() => navigate("/settings")} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-gray-700">
                 <Settings size={20} />
                 Settings
               </button>
@@ -178,7 +175,7 @@ function Location() {
 
             <div>
               <h1 className="font-semibold text-gray-800">
-                {username}
+                {getUsernameFromToken()}
               </h1>
 
               <div className="flex items-center gap-1">
@@ -205,7 +202,7 @@ function Location() {
 
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                  Hi, {username} 👋
+                  Hi, {getUsernameFromToken()} 👋
                 </h1>
 
                 <p className="text-gray-500 mt-1 text-sm md:text-base">
@@ -242,7 +239,7 @@ function Location() {
                     ]}
                   >
                     <Popup>
-                      {location.user_id.name}
+                      {location.user_id.name || "User"}
                     </Popup>
                   </Marker>
                 ))}
