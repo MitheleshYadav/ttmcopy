@@ -33,10 +33,8 @@ function Location() {
   // FETCH LOCATIONS
   const fetchLocations = () => {
     const token = localStorage.getItem("token");
-
     fetch("http://192.168.1.23:3000/location", {
       method: "GET",
-
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -44,13 +42,17 @@ function Location() {
       .then((response) => response.json())
 
       .then((data) => {
-        console.log("Fetched locations:", data.locations);
         setLocations(data.locations);
-      })
-
-      .catch((err) => {
+      }).catch((err) => {
         console.error(err);
       });
+
+    fetch("http://192.168.1.23:300/location/posts",{
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
   };
 
   useEffect(() => {

@@ -3,8 +3,6 @@ const jwt = require("jsonwebtoken");
 const auth = async(req,res,next)=>{
 
     try{
-        console.log("Auth middleware called");
-        console.log(req.body);
         const authHeader = req.headers.authorization;
 
         if(!authHeader){
@@ -29,9 +27,7 @@ const auth = async(req,res,next)=>{
         return res.status(401).json({
             message : "Invalid token"
         })
-
     }
-
 }
 
 module.exports = auth;

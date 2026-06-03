@@ -12,6 +12,24 @@ const jwt = require("jsonwebtoken");
 
 const authenticateToken = require("./middlewares/auth");
 
+//------------------ Socket Coonection ------------------------------------------//
+
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io")
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin : "http://localhost:5173"
+  }
+})
+
+io.on("connection", (socket)=>{
+  console.log("User connected : ", socket.id)
+});
+
+
+
 dotenv.config({
   path: "./.env",
 });
@@ -58,7 +76,6 @@ app.post("/login", userExists, async (req, res) => {
     const query = await User.findOne({
       email: email,
     });
-    console.log("query", query);
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
       await Location.updateOne({ user_id: query._id }, { $set: { latitude: req.body.latitude, longitude: req.body.longitude , isOnline: true } });
@@ -129,7 +146,7 @@ app.get("/location", authenticateToken, async (req, res) => {
         _id: 0,
       },
     ).populate("user_id", "name");
-    console.log("locations areeeeeeee:-     ", locations);
+    // console.log("locations areeeeeeee:-     ", locations);
 
     res.status(200).json({ locations });
   } catch (err) {
@@ -183,12 +200,24 @@ app.post("/details", authenticateToken, async (req, res) => {
   }
 });
 
+//-------------------- LOCATION/POSTS API --------------------//
 
+app.get("/location/posts", authenticateToken, async (req,res)=>{
+  try{
+
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+})
 
 
 //--------------------  SERVER LISTEN  --------------------//
 
-app.listen(3000, "0.0.0.0", () => {
+server.listen(3000, "0.0.0.0", () => {
   console.log("Server running");
 });
 

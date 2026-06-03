@@ -20,7 +20,7 @@ function Landing() {
 
         {/* Subtitle */}
         <div className="mb-8 sm:mb-10 max-w-2xl">
-          <p className="text-sm sm:text-lg md:text-xl text-gray-200 leading-relaxed">
+          <p className="text-sm sm:text-lg md:text-xl text-gray-900 leading-relaxed">
             Turning simple messages into intelligent conversations
             that actually understand you.
           </p>
@@ -54,7 +54,7 @@ function Landing() {
             className="h-5 w-5 sm:h-6 sm:w-6"
           />
 
-          <h3 className="text-sm sm:text-base md:text-lg">
+          <h3 className="text-sm sm:text-base text-gray-900 md:text-lg">
             Login With Google
           </h3>
 
