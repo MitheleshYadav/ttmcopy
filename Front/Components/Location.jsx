@@ -14,25 +14,47 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import "leaflet/dist/leaflet.css";
+import socket from "../src/socket";
 import Post from "./Post";
 
 function Location() {
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [locations, setLocations] = useState([]);
   const [post, setPost] = useState("");
+  const [postList, setPostList] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const getUsernameFromToken = () => {
     const token = localStorage.getItem("token");
-    console.log("Token in getUsernameFromToken:", token);
     const decoded = jwtDecode(token);
     return decoded.username;
   };
 
-  // FETCH LOCATIONS
+  function sendPost() {
+    const data = {
+      post: post,
+    };
+    fetch("http://192.168.1.23:3000/location/posts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response.status == 201) {
+          console.log("data stored");
+        }
+      })
+      .catch((err) => {
+        console.log("error : ", err);
+      });
+  }
+  // FETCH LOCATIONS of all the users
   const fetchLocations = () => {
-    const token = localStorage.getItem("token");
     fetch("http://192.168.1.23:3000/location", {
       method: "GET",
       headers: {
@@ -43,29 +65,65 @@ function Location() {
 
       .then((data) => {
         setLocations(data.locations);
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.error(err);
       });
+  };
+  
+  useEffect(() => {
+  console.log("Current postList:", postList);
+}, [postList]);
 
-    fetch("http://192.168.1.23:300/location/posts",{
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to backend");
+      console.log("Socket ID:", socket.id);
+    });
+    return () => {
+      socket.off("connect");
+    };
+  }, []);
+  useEffect(()=>{
+    fetch("http://192.168.1.23:3000/location/allexistingpost", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    }).then((response)=>{
+        return response.json();
+    }).then((data)=>{
+      console.log("here is the response data: ", data)
+      setPostList(data.allPost)
+      console.log("here is the list of all post: ", postList);
+    }).catch((err)=>{
+      console.log(err);
     })
-  };
+  },[])
+  useEffect(() => {
+    socket.on("newpost", (data) => {
+      setPostList((prev) => [...prev, data]);
+    });
+    socket.on("updatedpost", (updated_data) => {
+      console.log("updated EVENT RECEIVED", updated_data);
+      setPostList((prev) =>
+        prev.map((post) =>
+          post.userId === updated_data.id? updated_data : post,
+        ),
+      );
+    });
+  }, []);
 
+  // pooling effect so that the map section will keep on refreshing to update any online users
   useEffect(() => {
     fetchLocations();
-
     const interval = setInterval(() => {
       fetchLocations();
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // GET USER LOCATION
+  // GET USER LOCATION who just logged in so that when we logs in the map will zoom on his location
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -74,7 +132,6 @@ function Location() {
           long: position.coords.longitude,
         });
       },
-
       (error) => {
         console.log(error.message);
       },
@@ -109,9 +166,7 @@ function Location() {
           p-5 flex flex-col justify-between shadow-sm
           z-50 transition-all duration-300
           ${
-            sidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }
         `}
         >
@@ -121,9 +176,7 @@ function Location() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-violet-500"></div>
 
-                <h1 className="text-xl font-bold text-[#111827]">
-                  TalkToMe
-                </h1>
+                <h1 className="text-xl font-bold text-[#111827]">TalkToMe</h1>
               </div>
 
               {/* CLOSE BTN */}
@@ -138,13 +191,19 @@ function Location() {
             {/* MENU */}
             <div className="flex flex-col gap-3">
               {/* MAP */}
-              <button onClick={() => navigate("/location")} className="flex items-center gap-3 bg-violet-100 text-violet-600 px-4 py-3 rounded-xl font-medium">
+              <button
+                onClick={() => navigate("/location")}
+                className="flex items-center gap-3 bg-violet-100 text-violet-600 px-4 py-3 rounded-xl font-medium"
+              >
                 <Map size={20} />
                 Map
               </button>
 
               {/* REQUESTS */}
-              <button onClick={() => navigate("/requests")} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
+              <button
+                onClick={() => navigate("/requests")}
+                className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition"
+              >
                 <div className="flex items-center gap-3 text-gray-700">
                   <Bell size={20} />
                   Requests
@@ -152,7 +211,10 @@ function Location() {
               </button>
 
               {/* CHAT */}
-              <button onClick={() => navigate("/chat")} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition">
+              <button
+                onClick={() => navigate("/chat")}
+                className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition"
+              >
                 <div className="flex items-center gap-3 text-gray-700">
                   <MessageCircle size={20} />
                   Chat
@@ -160,7 +222,10 @@ function Location() {
               </button>
 
               {/* SETTINGS */}
-              <button onClick={() => navigate("/settings")} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-gray-700">
+              <button
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-gray-700"
+              >
                 <Settings size={20} />
                 Settings
               </button>
@@ -220,10 +285,7 @@ function Location() {
             <div className="h-[350px] sm:h-[450px] md:h-[550px] rounded-[20px] overflow-hidden">
               <MapContainer
                 className="h-full w-full"
-                center={[
-                  currentLocation.lat,
-                  currentLocation.long,
-                ]}
+                center={[currentLocation.lat, currentLocation.long]}
                 zoom={15}
                 zoomControl={false}
               >
@@ -235,14 +297,9 @@ function Location() {
                 {locations.map((location, index) => (
                   <Marker
                     key={index}
-                    position={[
-                      location.latitude,
-                      location.longitude,
-                    ]}
+                    position={[location.latitude, location.longitude]}
                   >
-                    <Popup>
-                      {location.user_id.name || "User"}
-                    </Popup>
+                    <Popup>{location.user_id.name || "User"}</Popup>
                   </Marker>
                 ))}
               </MapContainer>
@@ -268,14 +325,22 @@ function Location() {
               </div>
 
               {/* BUTTON */}
-              <button className="bg-violet-500 hover:bg-violet-600 transition text-white px-5 md:px-6 py-3 rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={sendPost}
+                className="bg-violet-500 hover:bg-violet-600 transition text-white px-5 md:px-6 py-3 rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
                 <Send size={18} />
                 Post
               </button>
             </div>
 
-            {/* POSTS */}
-            <Post props={{ name: "John Doe" }}></Post>
+            {postList.map((postItem, index) => (
+              <Post
+                key={index}
+                name={postItem.profile_name}
+                about={postItem.post}
+              />
+            ))}
           </div>
         </div>
       </div>

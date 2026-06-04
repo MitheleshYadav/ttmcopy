@@ -1,7 +1,7 @@
 const connectDb = require("./config/db");
 const Location = require("./models/Location");
 const User = require("./models/User");
-const UserDetails = require("./models/UserDetails");
+const PostData = require("./models/PostData");
 const { connect } = require("mongoose");
 
 const app = require("./utils/app");
@@ -16,19 +16,17 @@ const authenticateToken = require("./middlewares/auth");
 
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io")
-const server = http.createServer(app)
+const { Server } = require("socket.io");
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin : "http://localhost:5173"
-  }
-})
-
-io.on("connection", (socket)=>{
-  console.log("User connected : ", socket.id)
+    origin: "http://localhost:5173",
+  },
 });
 
-
+io.on("connection", (socket) => {
+  console.log("User connected : ", socket.id);
+});
 
 dotenv.config({
   path: "./.env",
@@ -78,7 +76,16 @@ app.post("/login", userExists, async (req, res) => {
     });
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
-      await Location.updateOne({ user_id: query._id }, { $set: { latitude: req.body.latitude, longitude: req.body.longitude , isOnline: true } });
+      await Location.updateOne(
+        { user_id: query._id },
+        {
+          $set: {
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            isOnline: true,
+          },
+        },
+      );
       const token = jwt.sign(
         { userId: query._id, username: query.name },
         process.env.JWT_SECRET,
@@ -120,13 +127,11 @@ app.post("/signup", hashPassword, async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    res
-      .status(201)
-      .json({
-        message: "User created successfully",
-        token: token,
-        username: newUser.name,
-      });
+    res.status(201).json({
+      message: "User created successfully",
+      token: token,
+      username: newUser.name,
+    });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -138,7 +143,7 @@ app.post("/signup", hashPassword, async (req, res) => {
 app.get("/location", authenticateToken, async (req, res) => {
   try {
     const locations = await Location.find(
-      {isOnline: true},
+      { isOnline: true },
       {
         latitude: 1,
         longitude: 1,
@@ -158,14 +163,16 @@ app.get("/location", authenticateToken, async (req, res) => {
   }
 });
 
-
 //--------------------  LOGOUT API  --------------------//
 
 app.get("/location/logout", authenticateToken, async (req, res) => {
   try {
-    await Location.updateOne({ user_id: req.user.userId }, { $set: { isOnline: false } });
+    await Location.updateOne(
+      { user_id: req.user.userId },
+      { $set: { isOnline: false } },
+    );
     res.status(200).json({ message: "Logout successful" });
-  }catch (err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({
       message: "Server error",
@@ -173,26 +180,22 @@ app.get("/location/logout", authenticateToken, async (req, res) => {
   }
 });
 
-
 //----------------------------  DETAILS API  --------------------//
 
 app.post("/details", authenticateToken, async (req, res) => {
-  try{
-    console.log("req.body", req.body);
-    console.log("req.user", req.user);
-
+  try {
     const profile_name = req.body.profile_name;
     const about = req.body.about;
-    const userDetails = new UserDetails({
-      user_id : req.user.userId,
-      profile_name : profile_name,
-      about : about
-    })
-    await userDetails.save();
+    const newPost = new PostData({
+      user_id: req.user.userId,
+      profile_name: profile_name,
+      post: about,
+    });
+    await newPost.save();
     res.status(201).json({
-      message : "Details saved successfully"
-    })
-  }catch(err){
+      message: "Details saved successfully",
+    });
+  } catch (err) {
     console.error("Error saving details:", err);
     res.status(500).json({
       message: "Server error",
@@ -202,18 +205,72 @@ app.post("/details", authenticateToken, async (req, res) => {
 
 //-------------------- LOCATION/POSTS API --------------------//
 
-app.get("/location/posts", authenticateToken, async (req,res)=>{
-  try{
-
-
-  }catch(err){
+app.post("/location/posts", authenticateToken, async (req, res) => {
+  try {
+    let details;
+    const user = await PostData.findOne({ user_id: req.user.userId });
+    if (user) {
+      // user's post already exist and he/she is trying to update the post
+      details = await PostData.updateOne(
+        { user_id: req.user.userId },
+        { $set: { post: req.body.post } },
+      );
+      const updatedData =  await PostData.findOne({user_id : req.user.userId})
+      console.log("emitting the updated post ")
+      io.emit("updatedpost", {
+        id : req.user.userId,
+        profile_name : updatedData.profile_name,
+        post : updatedData.post
+      })
+    } else {
+      // user post is not in data and this is the first post of the session
+      const about = req.body.post;
+      const user_id = req.user.userId;
+      const username = req.user.username;
+      const newPost = new PostData({
+        user_id: user_id,
+        profile_name: username,
+        post: about,
+      });
+      await newPost.save();
+      io.emit("newpost", {
+        id : user_id,
+        profile_name : username,
+        post : about
+      })
+    }
+    res.status(201).json({
+      message: "Details stored succefully",
+    });
+  } catch (err) {
     console.error(err);
     res.status(500).json({
       message: "Server error",
     });
   }
-})
+});
 
+//------------------- ALL EXISITING POST /Location/allexistingpost-------------------//
+
+app.get("/location/allexistingpost", authenticateToken, async (req, res)=>{
+  try{
+    const allPost = await PostData.find({},{
+      profile_name: 1,
+      post: 1,
+      user_id: 1,
+      _id: 0,
+    })
+    console.log("here are all the post ----------", allPost);
+    res.status(201).json({
+      allPost,
+    })
+  }catch(err){
+    console.log("error in this api calling :- ", err)
+    res.status(500).json({
+      message: "Some issue at the backend"
+    })
+  }
+})
 
 //--------------------  SERVER LISTEN  --------------------//
 

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userDetailsSchema = new mongoose.Schema({
+const postDetailsSchema = new mongoose.Schema({
     user_id : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "User",
@@ -11,10 +11,10 @@ const userDetailsSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    about : {
+    post : {
         type : String,
         required : true
     }
 }, {timestamps : true })
 
-module.exports = mongoose.model("UserDetails", userDetailsSchema)
+module.exports = mongoose.model("PostData", postDetailsSchema)

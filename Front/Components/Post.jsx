@@ -1,6 +1,6 @@
 
 
-function Post({ props }) {
+function Post({ name , about }) {
   return (
     <div className="mt-4 flex flex-col gap-3">
               {/* POST CARD */}
@@ -16,16 +16,12 @@ function Post({ props }) {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h1 className="font-semibold text-violet-600">
-                        {props.name}
+                        {name}
                       </h1>
                     </div>
 
                     <p className="text-gray-800 mt-1 font-medium text-sm md:text-base">
-                      Hey, anyone up for coffee? ☕
-                    </p>
-
-                    <p className="text-xs md:text-sm text-gray-400 mt-1">
-                      Connaught Place, New Delhi 
+                      {about}
                     </p>
                   </div>
                 </div>
