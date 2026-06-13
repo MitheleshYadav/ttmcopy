@@ -1,7 +1,9 @@
 const connectDb = require("./config/db");
-const Location = require("./models/Location");
-const User = require("./models/User");
-const PostData = require("./models/PostData");
+const Location = require("./models/Location.model");
+const User = require("./models/User.model");
+const PostData = require("./models/PostData.model");
+const RequestDetails = require("./models/Request.model");
+const AcceptedUsers = require("./models/Accepted.model")
 const { connect } = require("mongoose");
 
 const app = require("./utils/app");
@@ -17,6 +19,7 @@ const authenticateToken = require("./middlewares/auth");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const auth = require("./middlewares/auth");
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -24,7 +27,7 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
+io.on("connect", (socket) => {
   console.log("User connected : ", socket.id);
 });
 
@@ -215,13 +218,13 @@ app.post("/location/posts", authenticateToken, async (req, res) => {
         { user_id: req.user.userId },
         { $set: { post: req.body.post } },
       );
-      const updatedData =  await PostData.findOne({user_id : req.user.userId})
-      console.log("emitting the updated post ")
+      const updatedData = await PostData.findOne({ user_id: req.user.userId });
+      console.log("emitting the updated post ", updatedData);
       io.emit("updatedpost", {
-        id : req.user.userId,
-        profile_name : updatedData.profile_name,
-        post : updatedData.post
-      })
+        user_id: req.user.userId,
+        profile_name: updatedData.profile_name,
+        post: updatedData.post,
+      });
     } else {
       // user post is not in data and this is the first post of the session
       const about = req.body.post;
@@ -234,10 +237,10 @@ app.post("/location/posts", authenticateToken, async (req, res) => {
       });
       await newPost.save();
       io.emit("newpost", {
-        id : user_id,
-        profile_name : username,
-        post : about
-      })
+        id: user_id,
+        profile_name: username,
+        post: about,
+      });
     }
     res.status(201).json({
       message: "Details stored succefully",
@@ -252,23 +255,94 @@ app.post("/location/posts", authenticateToken, async (req, res) => {
 
 //------------------- ALL EXISITING POST /Location/allexistingpost-------------------//
 
-app.get("/location/allexistingpost", authenticateToken, async (req, res)=>{
-  try{
-    const allPost = await PostData.find({},{
-      profile_name: 1,
-      post: 1,
-      user_id: 1,
-      _id: 0,
-    })
-    console.log("here are all the post ----------", allPost);
+app.get("/location/allexistingpost", authenticateToken, async (req, res) => {
+  try {
+    const allPost = await PostData.find(
+      {},
+      {
+        profile_name: 1,
+        post: 1,
+        user_id: 1,
+        _id: 0,
+      },
+    );
     res.status(201).json({
       allPost,
-    })
-  }catch(err){
-    console.log("error in this api calling :- ", err)
+    });
+  } catch (err) {
+    console.log("error in this api calling :- ", err);
     res.status(500).json({
-      message: "Some issue at the backend"
+      message: "Some issue at the backend",
+    });
+  }
+});
+
+//--------------------------------POST/SEND-REQUEST------------------------//
+
+app.post("/post/send-request", authenticateToken, async (req, res) => {
+  try {
+    const sender_id = req.body.sender_id;
+    const receiver_id = req.body.receiver_id;
+    const newRequest = new RequestDetails({
+      sender_id: sender_id,
+      receiver_id: receiver_id,
+    });
+    await newRequest.save();
+    res.status(201).json({
+      message: "successfull",
+    });
+  } catch (err) {
+    console.log("there is some issue : ", err);
+    res.status(500);
+  }
+});
+
+//---------------------------------REQUEST/PER-USER--------------------//
+
+app.get("/request", authenticateToken, async (req, res) => {
+  try {
+    const current_userid = req.user.userId;
+    const data = await RequestDetails.find({ receiver_id: current_userid });
+    const senderIds = data.map((request) => request.sender_id);
+    const posts = await PostData.find({user_id: { $in: senderIds }},{
+        profile_name: 1,
+        post: 1,
+        user_id: 1,
+        _id: 0,
+      
+    });
+    console.log("-----------", posts);
+    res.status(201).json(posts);
+  } catch (err) {
+    console.log("There is some error in this:", err);
+    res.status(500).json({
+      message: "There is some issue",
+    });
+  }
+});
+
+// ---------------------REQUEST/ACCPETED-----------------------//
+
+app.post("/request/accept", authenticateToken, async (req, res)=>{
+  try{
+    const accepted_userid = req.body.senderID;
+    const senderName = req.body.senderName;
+    const newAccepted = new AcceptedUsers({
+      accepted_userid : accepted_userid,
+      acceptedUser_name : senderName
     })
+    console.log(newAccepted);
+    await newAccepted.save()
+    console.log("------------------------", req.body)
+    const deletedRecord = await RequestDetails.findOneAndDelete({ sender_id: req.body.senderID , receiver_id : req.body.receiverId});
+    console.log("delete-----", deletedRecord);
+    res.status(201).json({
+      message: "Done"
+    })
+
+  }catch(err){
+    console.log("There is some issue with this: ", err)
+    res.status(500);
   }
 })
 

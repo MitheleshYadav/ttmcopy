@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { jwtDecode } from "jwt-decode";
 import {
   Map,
@@ -14,36 +14,65 @@ import { useNavigate } from "react-router-dom";
 function Request() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [username, setUsername] = useState("");
+  const [request, setRequest]= useState([]);
+  const [userid, setUserid] = useState();
+  const token = localStorage.getItem("token");
   
-    const getUsernameFromToken = () => { 
+  function requestAccept(user_id, username){
+    const data = {
+      senderID : user_id,
+      senderName: username,
+      receiverId : userid
+    }
+    console.log("here is the body----", data)
+    
+    fetch("http://192.168.1.23:3000/request/accept",{
+      method : "POST",
+      headers:{
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body : JSON.stringify(data)
+    }).then((response)=>{
+      if(response.status == 201){
+        console.log("Accepted")
+      }
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+
+  useEffect(()=>{
+    console.log("token:", token.user_id);
+    fetch("http://192.168.1.23:3000/request",{
+      method : "GET",
+      headers:{
+        Authorization: `Bearer ${token}`,
+      }
+    }).then((response)=>{
+      if(response.status === 201){
+        console.log("data retreived succefully")
+      }
+      return response.json()
+    }).then((data)=>{
+      
+         setRequest(data)
+    }).catch((err)=>{
+      console.log("there was some issue", err);
+    })
+  },[])
+
+  useEffect(()=>{
     const token = localStorage.getItem("token");
-    console.log("Token in getUsernameFromToken:", token);
     const decoded = jwtDecode(token);
-    return decoded.username;
-  }   
-  const requests = [
-    {
-      id: 1,
-      name: "Priya Sharma",
-      distance: "2.4",
-      message: "Hey! I'm interested in your post.",
-      image: "https://i.pravatar.cc/150?img=1",
-    },
-    {
-      id: 2,
-      name: "Karan Mehta",
-      distance: "1.8",
-      message: "Let's catch up!",
-      image: "https://i.pravatar.cc/150?img=3",
-    },
-    {
-      id: 3,
-      name: "Sneha Reddy",
-      distance: "1.6",
-      message: "I'd love to join!",
-      image: "https://i.pravatar.cc/150?img=5",
-    },
-  ];
+    setUsername(decoded.username);
+    console.log("here is the userid", username)
+    setUserid(decoded.userId);
+    console.log("here is the userid", decoded.userId)
+  }, [])
+  
+  
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] p-3 md:p-4">
@@ -100,7 +129,7 @@ function Request() {
               <button onClick={() => navigate("/requests")} className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-violet-100 text-violet-600 font-medium">
                 <div className="flex items-center gap-3">
                   <Users size={20} />
-                  Requests
+                  Requests ({request.length})
                 </div>
               </button>
 
@@ -128,7 +157,7 @@ function Request() {
 
             <div>
               <h2 className="font-semibold text-gray-800">
-                {getUsernameFromToken()} 
+                {username} 
               </h2>
 
               <div className="flex items-center gap-1">
@@ -154,13 +183,13 @@ function Request() {
           {/* Requests Container */}
           <div className="flex-1 bg-white rounded-[28px] border border-gray-200 shadow-sm p-4 md:p-8 overflow-y-auto">
             <h1 className="text-2xl font-bold text-gray-800 mb-8">
-              Requests ({requests.length})
+              Requests ({request.length})
             </h1>
 
             <div className="space-y-6">
-              {requests.map((request) => (
+              {request.map((request) => (
                 <div
-                  key={request.id}
+                  key={request.user_id}
                   className="bg-white border border-gray-100 rounded-3xl p-5 md:p-6 shadow-sm hover:shadow-md transition"
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -168,8 +197,8 @@ function Request() {
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <img
-                          src={request.image}
-                          alt={request.name}
+                          src="https://i.pravatar.cc/130"
+                          alt="profile"
                           className="w-16 h-16 rounded-full object-cover"
                         />
 
@@ -178,16 +207,12 @@ function Request() {
 
                       <div>
                         <h2 className="font-bold text-lg text-gray-800">
-                          {request.name}
+                          {request.profile_name}
                         </h2>
 
-                        <p className="text-sm text-gray-400">
-                          {request.distance} km away
-                        </p>
-
-                        <p className="text-gray-600 mt-2">
-                          {request.message}
-                        </p>
+                        {/* <p className="text-gray-600 mt-2">
+                          {request.post}
+                        </p> */}
                       </div>
                     </div>
 
@@ -197,7 +222,7 @@ function Request() {
                         Reject
                       </button>
 
-                      <button className="flex-1 md:flex-none px-6 py-3 bg-violet-500 text-white rounded-xl hover:bg-violet-600 transition">
+                      <button onClick={() => requestAccept(request.user_id, request.profile_name)} className="flex-1 md:flex-none px-6 py-3 bg-violet-500 text-white rounded-xl hover:bg-violet-600 transition">
                         Accept
                       </button>
                     </div>

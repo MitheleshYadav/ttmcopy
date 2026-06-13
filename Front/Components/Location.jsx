@@ -25,12 +25,16 @@ function Location() {
   const [post, setPost] = useState("");
   const [postList, setPostList] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [username, setUsername] = useState("");
 
-  const getUsernameFromToken = () => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
-    const decoded = jwtDecode(token);
-    return decoded.username;
-  };
+
+    if (token) {
+      const decoded = jwtDecode(token);
+      setUsername(decoded.username);
+    }
+  }, []);
 
   function sendPost() {
     const data = {
@@ -52,6 +56,7 @@ function Location() {
       .catch((err) => {
         console.log("error : ", err);
       });
+    setPost("");
   }
   // FETCH LOCATIONS of all the users
   const fetchLocations = () => {
@@ -70,47 +75,49 @@ function Location() {
         console.error(err);
       });
   };
-  
-  useEffect(() => {
-  console.log("Current postList:", postList);
-}, [postList]);
+
+  // useEffect(() => {
+  //   console.log("Current postList:", postList);
+  // }, [postList]);
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("Connected to backend");
       console.log("Socket ID:", socket.id);
     });
     return () => {
       socket.off("connect");
     };
   }, []);
-  useEffect(()=>{
+  useEffect(() => {
     fetch("http://192.168.1.23:3000/location/allexistingpost", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }).then((response)=>{
-        return response.json();
-    }).then((data)=>{
-      console.log("here is the response data: ", data)
-      setPostList(data.allPost)
-      console.log("here is the list of all post: ", postList);
-    }).catch((err)=>{
-      console.log(err);
     })
-  },[])
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setPostList(data.allPost);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
   useEffect(() => {
     socket.on("newpost", (data) => {
       setPostList((prev) => [...prev, data]);
     });
     socket.on("updatedpost", (updated_data) => {
-      console.log("updated EVENT RECEIVED", updated_data);
-      setPostList((prev) =>
-        prev.map((post) =>
-          post.userId === updated_data.id? updated_data : post,
-        ),
-      );
+      console.log("Received update:", updated_data);
+
+      setPostList((prev) => {
+        const updated = prev.map((post) =>
+          post.user_id === updated_data.user_id ? updated_data : post,
+        );
+        return updated;
+      });
     });
   }, []);
 
@@ -242,7 +249,7 @@ function Location() {
 
             <div>
               <h1 className="font-semibold text-gray-800">
-                {getUsernameFromToken()}
+                {username}
               </h1>
 
               <div className="flex items-center gap-1">
@@ -269,7 +276,7 @@ function Location() {
 
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                  Hi, {getUsernameFromToken()} 👋
+                  Hi, {username} 👋
                 </h1>
 
                 <p className="text-gray-500 mt-1 text-sm md:text-base">
@@ -339,6 +346,7 @@ function Location() {
                 key={index}
                 name={postItem.profile_name}
                 about={postItem.post}
+                userId = {postItem.user_id}
               />
             ))}
           </div>
