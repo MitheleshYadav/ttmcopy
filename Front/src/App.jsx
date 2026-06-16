@@ -8,6 +8,7 @@ import Details from '../Components/Details.jsx';
 import Request from '../Components/Request.jsx';
 import Chat from '../Components/Chat.jsx';
 import Setting from '../Components/Setting.jsx';
+import ChatInner from '../Components/ChatInner.jsx';
 
 function App() {
   return(
@@ -21,6 +22,7 @@ function App() {
         <Route path="/requests" element={<Request />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Setting />} />
+        <Route path="/chat-inner" element={<ChatInner />} />
       </Routes>
     </BrowserRouter>
   );

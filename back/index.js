@@ -13,13 +13,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const authenticateToken = require("./middlewares/auth");
+const getOrCreateConversation = require("./middlewares/getOrCreateConversation")
+const sendMessage = require("./middlewares/sendMessage")
+// TOKEN CONTAINS :- { userId, username }
 
 //------------------ Socket Coonection ------------------------------------------//
 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const auth = require("./middlewares/auth");
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -328,14 +331,15 @@ app.post("/request/accept", authenticateToken, async (req, res)=>{
     const accepted_userid = req.body.senderID;
     const senderName = req.body.senderName;
     const newAccepted = new AcceptedUsers({
-      accepted_userid : accepted_userid,
-      acceptedUser_name : senderName
+      sender_id : accepted_userid,
+      receiver_id : req.user.userId,
+      sender_name : senderName
     })
     console.log(newAccepted);
     await newAccepted.save()
-    console.log("------------------------", req.body)
+    
     const deletedRecord = await RequestDetails.findOneAndDelete({ sender_id: req.body.senderID , receiver_id : req.body.receiverId});
-    console.log("delete-----", deletedRecord);
+    
     res.status(201).json({
       message: "Done"
     })
@@ -345,6 +349,35 @@ app.post("/request/accept", authenticateToken, async (req, res)=>{
     res.status(500);
   }
 })
+
+
+//----------------List of accpeted user /acceptedlist-------------------//
+
+app.get("/acceptedlist", authenticateToken, async (req, res)=>{
+  try{
+    const receiver_id = req.user.userId;
+    const allacceptedUser =  await AcceptedUsers.find({receiver_id : receiver_id},
+      {
+        sender_id : 1,
+        receiver_id : 1,
+        sender_name : 1,
+        _id : 0
+      }
+    )
+    res.status(201).json(allacceptedUser);
+  }catch(err){
+    console.log("There is some issue : ", err);
+  }
+})
+
+//------------------SENDING THE CONVERSATION-ID---------------------------//
+
+app.post("/getconversation", authenticateToken, getOrCreateConversation)
+
+//--------------adding the messsage of each user in respective conversation-------//
+
+app.post("/send-message", authenticateToken, sendMessage)
+
 
 //--------------------  SERVER LISTEN  --------------------//
 
