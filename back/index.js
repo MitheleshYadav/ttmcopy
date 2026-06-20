@@ -115,6 +115,7 @@ app.post("/login", userExists, async (req, res) => {
     const query = await User.findOne({
       email: email,
     });
+    console.log("query", query);
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
       await Location.updateOne(
@@ -169,10 +170,10 @@ app.post("/signup", hashPassword, async (req, res) => {
       { expiresIn: "7d" },
     );
     res.status(201).json({
-      message: "User created successfully",
-      token: token,
-      username: newUser.name,
-    });
+        message: "User created successfully",
+        token: token,
+        username: newUser.name,
+      });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });
