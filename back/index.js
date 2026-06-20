@@ -118,15 +118,27 @@ app.post("/login", userExists, async (req, res) => {
     });
     console.log("query", query);
     const isMatch = await bcrypt.compare(password, query.password);
-    if (isMatch) {
 
-      const newLocation = new Location({
+    
+    if (isMatch) {
+       
+      const updatedLocation = await Location.findOne({
         user_id: query._id,
-        latitude: req.body.latitude,
-        longitude: req.body.longitude,
-        isOnline: true,
-      });
-      await newLocation.save();
+      })
+      if(updatedLocation) {
+        await Location.updateOne(
+          { user_id: query._id },
+          { $set: { latitude: req.body.latitude, longitude: req.body.longitude, isOnline: true } },
+        );
+      } else {
+        const newLocation = new Location({
+          user_id: query._id,
+          latitude: req.body.latitude,
+          longitude: req.body.longitude,
+          isOnline: true,
+        });
+        await newLocation.save();
+      }
       const token = jwt.sign(
         { userId: query._id, username: query.name },
         process.env.JWT_SECRET,
