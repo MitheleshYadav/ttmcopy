@@ -477,6 +477,7 @@ app.get("/logout", authenticateToken, async (req, res) => {
     const ConversationData = await Conversation.deleteMany({
       participants: userId,
     });
+
     console.log("Conversation data deleted", ConversationData);
     // Delete Messages
     const MessagesData = await Messages.deleteMany({
@@ -498,7 +499,7 @@ app.get("/logout", authenticateToken, async (req, res) => {
       user_id: userId,
     });
     console.log("Post data deleted", PostDataDetails);
-
+    await Location.updateOne({user_id : userId}, {$set : {isOnline : false}})
     // Remove socket mapping
     onlineUsers.delete(userId);
 
