@@ -3,6 +3,8 @@ import { Camera, User, PenLine, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Details() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -17,7 +19,7 @@ function Details() {
 
     console.log(data);
 
-    fetch("http://192.168.1.23:3000/details",{
+    fetch(`${BACKEND_URL}/details`,{
       method: "POST",
       headers: {
         "Content-Type": "application/json",

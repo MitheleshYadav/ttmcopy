@@ -3,6 +3,8 @@ import bg from "../src/assets/bg.png";
 import googleLogo from "../src/assets/google.png";
 import { useState } from "react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Signup() {
   const navigate = useNavigate();
 
@@ -27,7 +29,7 @@ function Signup() {
         longitude: longitude,
       };
 
-      fetch("http://192.168.1.23:3000/signup", {
+      fetch(`${BACKEND_URL}/signup`, {
 
         method: "POST",
 

@@ -3,8 +3,10 @@ const Location = require("./models/Location.model");
 const User = require("./models/User.model");
 const PostData = require("./models/PostData.model");
 const RequestDetails = require("./models/Request.model");
-const AcceptedUsers = require("./models/Accepted.model")
+const AcceptedUsers = require("./models/Accepted.model");
+const Messages = require("./models/Messages.model");
 const { connect } = require("mongoose");
+const Conversation = require("./models/Coversation.model");
 
 const app = require("./utils/app");
 
@@ -13,8 +15,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const authenticateToken = require("./middlewares/auth");
-const getOrCreateConversation = require("./middlewares/getOrCreateConversation")
-const sendMessage = require("./middlewares/sendMessage")
+const getOrCreateConversation = require("./middlewares/getOrCreateConversation");
+const sendMessage = require("./middlewares/sendMessage");
+const getMessage = require("./middlewares/getMessage");
 // TOKEN CONTAINS :- { userId, username }
 
 //------------------ Socket Coonection ------------------------------------------//
@@ -26,12 +29,44 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
   },
 });
 
-io.on("connect", (socket) => {
-  console.log("User connected : ", socket.id);
+const onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("register", (userId) => {
+    if (!userId) return;
+
+    socket.userId = userId;
+    onlineUsers.set(userId, socket.id);
+
+    console.log("Online Users:", onlineUsers);
+  });
+
+  socket.on("joinRoom", (conversationId) => {
+    socket.join(conversationId);
+  });
+
+  socket.on("sendMessage", async (data) => {
+    const message = await Messages.create({
+      conversationId: data.conv_id,
+      senderId: data.id,
+      text: data.text,
+    });
+    io.to(data.conv_id).emit("newMessage", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+    }
+  });
 });
 
 dotenv.config({
@@ -209,7 +244,7 @@ app.post("/details", authenticateToken, async (req, res) => {
   }
 });
 
-//-------------------- LOCATION/POSTS API --------------------//
+//-------------------- LOCATION/POSTS API (All the posts in the location page or map page) --------------------//
 
 app.post("/location/posts", authenticateToken, async (req, res) => {
   try {
@@ -304,16 +339,19 @@ app.post("/post/send-request", authenticateToken, async (req, res) => {
 
 app.get("/request", authenticateToken, async (req, res) => {
   try {
+    console.log("Online Users:", onlineUsers);
     const current_userid = req.user.userId;
     const data = await RequestDetails.find({ receiver_id: current_userid });
     const senderIds = data.map((request) => request.sender_id);
-    const posts = await PostData.find({user_id: { $in: senderIds }},{
+    const posts = await PostData.find(
+      { user_id: { $in: senderIds } },
+      {
         profile_name: 1,
         post: 1,
         user_id: 1,
         _id: 0,
-      
-    });
+      },
+    );
     console.log("-----------", posts);
     res.status(201).json(posts);
   } catch (err) {
@@ -326,58 +364,156 @@ app.get("/request", authenticateToken, async (req, res) => {
 
 // ---------------------REQUEST/ACCPETED-----------------------//
 
-app.post("/request/accept", authenticateToken, async (req, res)=>{
-  try{
+app.post("/request/accept", authenticateToken, async (req, res) => {
+  try {
     const accepted_userid = req.body.senderID;
     const senderName = req.body.senderName;
     const newAccepted = new AcceptedUsers({
-      sender_id : accepted_userid,
-      receiver_id : req.user.userId,
-      sender_name : senderName
-    })
+      sender_id: accepted_userid,
+      receiver_id: req.user.userId,
+      sender_name: senderName,
+    });
     console.log(newAccepted);
-    await newAccepted.save()
-    
-    const deletedRecord = await RequestDetails.findOneAndDelete({ sender_id: req.body.senderID , receiver_id : req.body.receiverId});
-    
-    res.status(201).json({
-      message: "Done"
-    })
+    await newAccepted.save();
 
-  }catch(err){
-    console.log("There is some issue with this: ", err)
+    const deletedRecord = await RequestDetails.findOneAndDelete({
+      sender_id: req.body.senderID,
+      receiver_id: req.body.receiverId,
+    });
+
+    res.status(201).json({
+      message: "Done",
+    });
+  } catch (err) {
+    console.log("There is some issue with this: ", err);
     res.status(500);
   }
-})
-
+});
 
 //----------------List of accpeted user /acceptedlist-------------------//
 
-app.get("/acceptedlist", authenticateToken, async (req, res)=>{
-  try{
+app.get("/acceptedlist", authenticateToken, async (req, res) => {
+  try {
     const receiver_id = req.user.userId;
-    const allacceptedUser =  await AcceptedUsers.find({receiver_id : receiver_id},
+    const allacceptedUser = await AcceptedUsers.find(
+      { receiver_id: receiver_id },
       {
-        sender_id : 1,
-        receiver_id : 1,
-        sender_name : 1,
-        _id : 0
-      }
-    )
+        sender_id: 1,
+        receiver_id: 1,
+        sender_name: 1,
+        _id: 0,
+      },
+    );
     res.status(201).json(allacceptedUser);
-  }catch(err){
+  } catch (err) {
     console.log("There is some issue : ", err);
   }
-})
+});
 
 //------------------SENDING THE CONVERSATION-ID---------------------------//
 
-app.post("/getconversation", authenticateToken, getOrCreateConversation)
+app.post("/getconversation", authenticateToken, getOrCreateConversation);
 
-//--------------adding the messsage of each user in respective conversation-------//
+//------------- getting all the old message from the backend---//
+app.get("/get-messages", authenticateToken, getMessage);
 
-app.post("/send-message", authenticateToken, sendMessage)
+//------------------UPDATING THE USERNAME---------------------------//
 
+app.post("/update-username", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const newUsername = req.body.username;
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { name: newUsername },
+      { new: true },
+    );
+    const updatePostData = await PostData.updateMany(
+      { user_id: userId },
+      { $set: { profile_name: newUsername } },
+    );
+    const newToken = jwt.sign(
+      {
+        userId: updatedUser._id,
+        username: updatedUser.name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    console.log("here is the token", newToken);
+    res.status(200).json({
+        message: "Username updated successfully",
+        username: updatedUser.name,
+        token: newToken,
+      });
+  } catch (err) {
+    console.log("There is some issue in updating the username: ", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+//------------------LOGOUT API ---------------------------//
+
+app.get("/logout", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+     console.log("Logging out user with ID:", userId);
+    // Delete Location
+    const LocationData = await Location.deleteMany({
+      user_id: userId,
+    });
+    console.log("Location data deleted", LocationData);
+    // Delete Friend Requests
+    const RequestData = await RequestDetails.deleteMany({
+      $or: [
+        { sender_id: userId },
+        { receiver_id: userId },
+      ],
+    });
+    console.log("Request data deleted", RequestData);
+    // Delete Conversations
+    const ConversationData = await Conversation.deleteMany({
+      participants: userId,
+    });
+    console.log("Conversation data deleted", ConversationData);
+    // Delete Messages
+    const MessagesData = await Messages.deleteMany({
+      $or: [
+        { sender_id: userId },
+        { receiver_id: userId },
+      ],
+    });
+    console.log("Messages data deleted", MessagesData);
+    const AcceptedUserData = await AcceptedUsers.deleteMany({
+      $or: [
+        { sender_id: userId },
+        { receiver_id: userId },
+      ],
+    });
+    console.log("Accepted user data deleted", AcceptedUserData);
+    // Delete Posts
+    const PostDataDetails = await PostData.deleteMany({
+      user_id: userId,
+    });
+    console.log("Post data deleted", PostDataDetails);
+
+    // Remove socket mapping
+    onlineUsers.delete(userId);
+
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
 
 //--------------------  SERVER LISTEN  --------------------//
 
@@ -385,8 +521,3 @@ server.listen(3000, "0.0.0.0", () => {
   console.log("Server running");
 });
 
-//connecting frontend from the backend
-//setting up the cinfigration file
-//setting up the database connection
-//creating the model and schema for the database
-//now we need to set up the app to listen the request from the frontend and send the response to the frontend

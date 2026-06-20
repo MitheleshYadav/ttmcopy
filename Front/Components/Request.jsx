@@ -11,6 +11,8 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Request() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,7 +29,7 @@ function Request() {
     }
     console.log("here is the body----", data)
     
-    fetch("http://192.168.1.23:3000/request/accept",{
+    fetch(`${BACKEND_URL}/request/accept`,{
       method : "POST",
       headers:{
         Authorization: `Bearer ${token}`,
@@ -44,16 +46,12 @@ function Request() {
   }
 
   useEffect(()=>{
-    console.log("token:", token.user_id);
-    fetch("http://192.168.1.23:3000/request",{
+    fetch(`${BACKEND_URL}/request`,{
       method : "GET",
       headers:{
         Authorization: `Bearer ${token}`,
       }
     }).then((response)=>{
-      if(response.status === 201){
-        console.log("data retreived succefully")
-      }
       return response.json()
     }).then((data)=>{
       
@@ -67,9 +65,9 @@ function Request() {
     const token = localStorage.getItem("token");
     const decoded = jwtDecode(token);
     setUsername(decoded.username);
-    console.log("here is the userid", username)
+    
     setUserid(decoded.userId);
-    console.log("here is the userid", decoded.userId)
+    
   }, [])
   
   

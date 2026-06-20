@@ -2,6 +2,7 @@ import googleLogo from "../src/assets/google.png";
 import bg from "../src/assets/bg.png";
 import { Link } from "react-router-dom";
 
+
 function Landing() {
   return (
     <div

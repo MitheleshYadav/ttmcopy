@@ -1,4 +1,4 @@
 {
     "editor.aiStats.enabled": false,
-    "chat.disableAIFeatures": true
+    "chat.disableAIFeatures": false
 }

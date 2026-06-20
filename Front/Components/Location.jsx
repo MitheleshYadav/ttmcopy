@@ -13,11 +13,16 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+import { useContext } from "react";
+import { SocketContext } from "../src/context/SocketContext";
+
 import "leaflet/dist/leaflet.css";
-import socket from "../src/socket";
 import Post from "./Post";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Location() {
+  const socket = useContext(SocketContext);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -26,6 +31,7 @@ function Location() {
   const [postList, setPostList] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,6 +39,7 @@ function Location() {
     if (token) {
       const decoded = jwtDecode(token);
       setUsername(decoded.username);
+      setUserId(decoded.userId);
     }
   }, []);
 
@@ -40,7 +47,7 @@ function Location() {
     const data = {
       post: post,
     };
-    fetch("http://192.168.1.23:3000/location/posts", {
+    fetch(`${BACKEND_URL}/location/posts`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -60,7 +67,7 @@ function Location() {
   }
   // FETCH LOCATIONS of all the users
   const fetchLocations = () => {
-    fetch("http://192.168.1.23:3000/location", {
+    fetch(`${BACKEND_URL}/location`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -76,20 +83,10 @@ function Location() {
       });
   };
 
-  // useEffect(() => {
-  //   console.log("Current postList:", postList);
-  // }, [postList]);
+  
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket ID:", socket.id);
-    });
-    return () => {
-      socket.off("connect");
-    };
-  }, []);
-  useEffect(() => {
-    fetch("http://192.168.1.23:3000/location/allexistingpost", {
+    fetch(`${BACKEND_URL}/location/allexistingpost`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -105,13 +102,13 @@ function Location() {
         console.log(err);
       });
   }, []);
+
   useEffect(() => {
+    if (!socket) return;
     socket.on("newpost", (data) => {
       setPostList((prev) => [...prev, data]);
     });
     socket.on("updatedpost", (updated_data) => {
-      console.log("Received update:", updated_data);
-
       setPostList((prev) => {
         const updated = prev.map((post) =>
           post.user_id === updated_data.user_id ? updated_data : post,
@@ -248,9 +245,7 @@ function Location() {
             />
 
             <div>
-              <h1 className="font-semibold text-gray-800">
-                {username}
-              </h1>
+              <h1 className="font-semibold text-gray-800">{username}</h1>
 
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -346,7 +341,7 @@ function Location() {
                 key={index}
                 name={postItem.profile_name}
                 about={postItem.post}
-                userId = {postItem.user_id}
+                userId={postItem.user_id}
               />
             ))}
           </div>

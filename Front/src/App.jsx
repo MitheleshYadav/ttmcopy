@@ -10,21 +10,25 @@ import Chat from '../Components/Chat.jsx';
 import Setting from '../Components/Setting.jsx';
 import ChatInner from '../Components/ChatInner.jsx';
 
+import { SocketProvider } from './context/SocketContext';
+
 function App() {
-  return(
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/location" element={<Location />} />
-        <Route path="/details" element={<Details />} />
-        <Route path="/requests" element={<Request />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/settings" element={<Setting />} />
-        <Route path="/chat-inner" element={<ChatInner />} />
-      </Routes>
-    </BrowserRouter>
+  return (
+    <SocketProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/location" element={<Location />} />
+          <Route path="/details" element={<Details />} />
+          <Route path="/requests" element={<Request />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/settings" element={<Setting />} />
+          <Route path="/chat-inner" element={<ChatInner />} />
+        </Routes>
+      </BrowserRouter>
+    </SocketProvider>
   );
 }
 

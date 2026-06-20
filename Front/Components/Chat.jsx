@@ -4,6 +4,8 @@ import { Map, Users, MessageCircle, Settings, Menu, X } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Chat() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,13 +18,13 @@ function Chat() {
     const token = localStorage.getItem("token");
     const decoded = jwtDecode(token);
     setUsername(decoded.username);
-    console.log("here is the userid", username);
+   
     setUserid(decoded.userId);
-    console.log("here is the userid", decoded.userId);
+    
   }, []);
 
   useEffect(() => {
-    fetch("http://192.168.1.23:3000/acceptedlist", {
+    fetch(`${BACKEND_URL}/acceptedlist`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -32,6 +34,7 @@ function Chat() {
         return response.json();
       })
       .then((data) => {
+        console.log("here is the data from the backend", data);
         setChats(data);
       })
       .catch((err) => {

@@ -2,10 +2,13 @@ import bg from '../src/assets/bg.png';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 function Login() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const navigate = useNavigate();
+  
 
   function submitForm() {
 
@@ -19,9 +22,7 @@ function Login() {
         latitude: latitude,
         longitude: longitude,
       };
-      console.log(data);
-
-      fetch("http://192.168.1.23:3000/login", {
+      fetch(`${BACKEND_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

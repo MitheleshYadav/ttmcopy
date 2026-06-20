@@ -6,15 +6,14 @@ function Post({ name, about, userId }) {
   const [senderid, setSenderId] = useState("");
   const [requestSent, setRequestSent] = useState(false);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = jwtDecode(token);
       setUsername(decoded.username);
       setSenderId(decoded.userId);
-      console.log("current user:- ", decoded.userId);
-      console.log("other: ", userId);
-      console.log("------------------");
     }
   }, []);
 
@@ -24,7 +23,7 @@ function Post({ name, about, userId }) {
       receiver_id: userId,
     };
     const token = localStorage.getItem("token");
-    fetch("http://192.168.1.23:3000/post/send-request", {
+    fetch(`${BACKEND_URL}/post/send-request`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
