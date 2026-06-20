@@ -5,6 +5,7 @@ const PostData = require("./models/PostData.model");
 const RequestDetails = require("./models/Request.model");
 const AcceptedUsers = require("./models/Accepted.model");
 const Messages = require("./models/Messages.model");
+const Friend = require("./models/Freind.model");
 const { connect } = require("mongoose");
 const Conversation = require("./models/Coversation.model");
 
@@ -118,16 +119,14 @@ app.post("/login", userExists, async (req, res) => {
     console.log("query", query);
     const isMatch = await bcrypt.compare(password, query.password);
     if (isMatch) {
-      await Location.updateOne(
-        { user_id: query._id },
-        {
-          $set: {
-            latitude: req.body.latitude,
-            longitude: req.body.longitude,
-            isOnline: true,
-          },
-        },
-      );
+
+      const newLocation = new Location({
+        user_id: query._id,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude,
+        isOnline: true,
+      });
+      await newLocation.save();
       const token = jwt.sign(
         { userId: query._id, username: query.name },
         process.env.JWT_SECRET,
@@ -170,10 +169,10 @@ app.post("/signup", hashPassword, async (req, res) => {
       { expiresIn: "7d" },
     );
     res.status(201).json({
-        message: "User created successfully",
-        token: token,
-        username: newUser.name,
-      });
+      message: "User created successfully",
+      token: token,
+      username: newUser.name,
+    });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -199,23 +198,6 @@ app.get("/location", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
-      message: "Server error",
-    });
-  }
-});
-
-//--------------------  LOGOUT API  --------------------//
-
-app.get("/location/logout", authenticateToken, async (req, res) => {
-  try {
-    await Location.updateOne(
-      { user_id: req.user.userId },
-      { $set: { isOnline: false } },
-    );
-    res.status(200).json({ message: "Logout successful" });
-  } catch (err) {
-    console.error(err);
     res.status(500).json({
       message: "Server error",
     });
@@ -338,8 +320,9 @@ app.post("/post/send-request", authenticateToken, async (req, res) => {
 
 //---------------------------------REQUEST/PER-USER--------------------//
 
-app.get("/request", authenticateToken, async (req, res) => {
+app.get("/pending-requests", authenticateToken, async (req, res) => {
   try {
+    console.log("API HIT FOR THE REQUEST PAGE")
     console.log("Online Users:", onlineUsers);
     const current_userid = req.user.userId;
     const data = await RequestDetails.find({ receiver_id: current_userid });
@@ -367,47 +350,62 @@ app.get("/request", authenticateToken, async (req, res) => {
 
 app.post("/request/accept", authenticateToken, async (req, res) => {
   try {
-    const accepted_userid = req.body.senderID;
-    const senderName = req.body.senderName;
-    const newAccepted = new AcceptedUsers({
-      sender_id: accepted_userid,
-      receiver_id: req.user.userId,
-      sender_name: senderName,
-    });
-    console.log(newAccepted);
-    await newAccepted.save();
+    const senderId = req.body.senderID;
+    const receiverId = req.user.userId;
 
-    const deletedRecord = await RequestDetails.findOneAndDelete({
-      sender_id: req.body.senderID,
-      receiver_id: req.body.receiverId,
+    const newFriend = new Friend({
+      users: [senderId, receiverId],
+    });
+
+    await newFriend.save();
+    await RequestDetails.findOneAndDelete({
+      sender_id: senderId,
+      receiver_id: receiverId,
     });
 
     res.status(201).json({
-      message: "Done",
+      message: "Friend Added",
     });
   } catch (err) {
-    console.log("There is some issue with this: ", err);
-    res.status(500);
+    console.log(err);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
 });
 
-//----------------List of accpeted user /acceptedlist-------------------//
+//----------------friend list api-------------------//
 
-app.get("/acceptedlist", authenticateToken, async (req, res) => {
+app.get("/friendlist", authenticateToken, async (req, res) => {
   try {
-    const receiver_id = req.user.userId;
-    const allacceptedUser = await AcceptedUsers.find(
-      { receiver_id: receiver_id },
-      {
-        sender_id: 1,
-        receiver_id: 1,
-        sender_name: 1,
-        _id: 0,
-      },
-    );
-    res.status(201).json(allacceptedUser);
+    const currentUserId = req.user.userId;
+
+    const friends = await Friend.find({
+      users: currentUserId,
+    }).populate("users", "name");
+     
+
+    console.log("FRIEND DOCUMENTS:", friends);
+
+    const friendList = friends.map((friend) => {
+      const otherUser = friend.users.find(
+        (user) => user._id.toString() !== currentUserId,
+      );
+    
+      return {
+        user_id: otherUser._id,
+        username: otherUser.name,
+      };
+    });
+
+    res.status(200).json(friendList);
   } catch (err) {
-    console.log("There is some issue : ", err);
+    console.log(err);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
   }
 });
 
@@ -444,10 +442,10 @@ app.post("/update-username", authenticateToken, async (req, res) => {
 
     console.log("here is the token", newToken);
     res.status(200).json({
-        message: "Username updated successfully",
-        username: updatedUser.name,
-        token: newToken,
-      });
+      message: "Username updated successfully",
+      username: updatedUser.name,
+      token: newToken,
+    });
   } catch (err) {
     console.log("There is some issue in updating the username: ", err);
     res.status(500).json({ message: "Internal server error" });
@@ -459,47 +457,42 @@ app.post("/update-username", authenticateToken, async (req, res) => {
 app.get("/logout", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-     console.log("Logging out user with ID:", userId);
+   
     // Delete Location
     const LocationData = await Location.deleteMany({
       user_id: userId,
     });
-    console.log("Location data deleted", LocationData);
+    
     // Delete Friend Requests
     const RequestData = await RequestDetails.deleteMany({
-      $or: [
-        { sender_id: userId },
-        { receiver_id: userId },
-      ],
+      $or: [{ sender_id: userId }, { receiver_id: userId }],
     });
-    console.log("Request data deleted", RequestData);
+    
     // Delete Conversations
     const ConversationData = await Conversation.deleteMany({
       participants: userId,
     });
 
-    console.log("Conversation data deleted", ConversationData);
+   
     // Delete Messages
     const MessagesData = await Messages.deleteMany({
-      $or: [
-        { sender_id: userId },
-        { receiver_id: userId },
-      ],
+      $or: [{ sender_id: userId }, { receiver_id: userId }],
     });
-    console.log("Messages data deleted", MessagesData);
-    const AcceptedUserData = await AcceptedUsers.deleteMany({
-      $or: [
-        { sender_id: userId },
-        { receiver_id: userId },
-      ],
+    
+    // Delete Accepted Users
+    const freindList = await Friend.deleteMany({
+      $or: [{ "users.0": userId }, { "users.1": userId }],
     });
-    console.log("Accepted user data deleted", AcceptedUserData);
+    
     // Delete Posts
     const PostDataDetails = await PostData.deleteMany({
       user_id: userId,
     });
-    console.log("Post data deleted", PostDataDetails);
-    await Location.updateOne({user_id : userId}, {$set : {isOnline : false}})
+    
+    await Location.updateOne(
+      { user_id: userId },
+      { $set: { isOnline: false } },
+    );
     // Remove socket mapping
     onlineUsers.delete(userId);
 
@@ -522,4 +515,3 @@ app.get("/logout", authenticateToken, async (req, res) => {
 server.listen(3000, "0.0.0.0", () => {
   console.log("Server running");
 });
-

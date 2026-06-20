@@ -76,6 +76,7 @@ function Location() {
       .then((response) => response.json())
 
       .then((data) => {
+        console.log("locations data from backend", data);
         setLocations(data.locations);
       })
       .catch((err) => {
@@ -151,191 +152,234 @@ function Location() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] p-3 md:p-4">
-      <div className="max-w-[1700px] mx-auto flex gap-4 h-[calc(100vh-24px)] relative">
-        {/* MOBILE OVERLAY */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
+  <div className="min-h-screen bg-[#0F172A] p-2 md:p-4">
+    <div className="max-w-[1700px] mx-auto flex gap-4 h-[calc(100vh-16px)] relative">
 
-        {/* SIDEBAR */}
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
         <div
-          className={`
-          fixed lg:static top-0 left-0 h-screen lg:h-auto
-          w-[260px] bg-white rounded-none lg:rounded-[28px]
-          border-r lg:border border-gray-200
-          p-5 flex flex-col justify-between shadow-sm
-          z-50 transition-all duration-300
-          ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }
-        `}
-        >
-          <div>
-            {/* TOP */}
-            <div className="flex items-center justify-between mb-10">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-violet-500"></div>
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-                <h1 className="text-xl font-bold text-[#111827]">TalkToMe</h1>
-              </div>
+      {/* SIDEBAR */}
+      <div
+        className={`
+        fixed lg:static top-0 left-0 h-screen lg:h-auto
+        w-[250px]
+        bg-[#111827]
+        border-r lg:border border-[#1F2937]
+        rounded-none lg:rounded-3xl
+        p-5 flex flex-col justify-between
+        z-50 transition-all duration-300
+        ${
+          sidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
+        }
+      `}
+      >
+        <div>
+          {/* LOGO */}
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-violet-500"></div>
 
-              {/* CLOSE BTN */}
-              <button
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <X size={24} />
-              </button>
+              <h1 className="text-xl font-bold text-white">
+                TalkToMe
+              </h1>
             </div>
 
-            {/* MENU */}
-            <div className="flex flex-col gap-3">
-              {/* MAP */}
-              <button
-                onClick={() => navigate("/location")}
-                className="flex items-center gap-3 bg-violet-100 text-violet-600 px-4 py-3 rounded-xl font-medium"
-              >
-                <Map size={20} />
-                Map
-              </button>
-
-              {/* REQUESTS */}
-              <button
-                onClick={() => navigate("/requests")}
-                className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition"
-              >
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Bell size={20} />
-                  Requests
-                </div>
-              </button>
-
-              {/* CHAT */}
-              <button
-                onClick={() => navigate("/chat")}
-                className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 transition"
-              >
-                <div className="flex items-center gap-3 text-gray-700">
-                  <MessageCircle size={20} />
-                  Chat
-                </div>
-              </button>
-
-              {/* SETTINGS */}
-              <button
-                onClick={() => navigate("/settings")}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-gray-700"
-              >
-                <Settings size={20} />
-                Settings
-              </button>
-            </div>
+            <button
+              className="lg:hidden text-white"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X size={22} />
+            </button>
           </div>
 
-          {/* USER */}
+          {/* MENU */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => navigate("/location")}
+              className="flex items-center gap-3 bg-violet-600/20 border border-violet-500/30 text-violet-400 px-3 py-3 rounded-xl"
+            >
+              <Map size={18} />
+              <span className="text-sm">Map</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/requests")}
+              className="flex items-center gap-3 text-gray-300 hover:bg-[#1F2937] px-3 py-3 rounded-xl transition"
+            >
+              <Bell size={18} />
+              <span className="text-sm">Requests</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/chat")}
+              className="flex items-center gap-3 text-gray-300 hover:bg-[#1F2937] px-3 py-3 rounded-xl transition"
+            >
+              <MessageCircle size={18} />
+              <span className="text-sm">Chat</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/settings")}
+              className="flex items-center gap-3 text-gray-300 hover:bg-[#1F2937] px-3 py-3 rounded-xl transition"
+            >
+              <Settings size={18} />
+              <span className="text-sm">Settings</span>
+            </button>
+          </div>
+        </div>
+
+        {/* USER */}
+        <div className="flex items-center gap-3 border-t border-[#1F2937] pt-4">
+          <img
+            src="https://i.pravatar.cc/100"
+            alt="profile"
+            className="w-10 h-10 rounded-full border-2 border-violet-500"
+          />
+
+          <div>
+            <h2 className="text-white text-sm font-semibold">
+              {username}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+
+              <p className="text-xs text-gray-400">
+                Online
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 flex flex-col gap-4">
+
+        {/* HEADER */}
+        <div className="bg-[#111827] border border-[#1F2937] rounded-3xl px-4 md:px-6 py-5">
           <div className="flex items-center gap-3">
-            <img
-              src="https://i.pravatar.cc/100"
-              alt="profile"
-              className="w-12 h-12 rounded-full"
-            />
+
+            <button
+              className="lg:hidden text-white"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={22} />
+            </button>
 
             <div>
-              <h1 className="font-semibold text-gray-800">{username}</h1>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                Hi, {username} 👋
+              </h1>
 
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-
-                <p className="text-sm text-gray-500">Online</p>
-              </div>
+              <p className="text-xs md:text-sm text-gray-400 mt-1">
+                Welcome back. You're currently online.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* MAIN */}
-        <div className="flex-1 flex flex-col gap-4 w-full lg:ml-0">
-          {/* TOP BAR */}
-          <div className="bg-white rounded-[24px] border border-gray-200 px-4 md:px-6 py-4 flex items-center shadow-sm">
-            <div className="flex items-center gap-3">
-              {/* MOBILE MENU */}
-              <button
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu size={26} />
-              </button>
+        {/* STATS */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 
-              <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                  Hi, {username} 👋
-                </h1>
+          <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-4">
+            <p className="text-gray-400 text-xs">
+              Online Users
+            </p>
 
-                <p className="text-gray-500 mt-1 text-sm md:text-base">
-                  Welcome back! You are online.
-                </p>
-              </div>
-            </div>
+            <h2 className="text-white text-2xl font-bold">
+              {locations.length}
+            </h2>
           </div>
 
-          {/* MAP CARD */}
-          <div className="bg-white rounded-[24px] border border-gray-200 p-3 md:p-4 shadow-sm flex-1 flex flex-col">
-            {/* MAP */}
-            <div className="h-[350px] sm:h-[450px] md:h-[550px] rounded-[20px] overflow-hidden">
-              <MapContainer
-                className="h-full w-full"
-                center={[currentLocation.lat, currentLocation.long]}
-                zoom={15}
-                zoomControl={false}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution="&copy; OpenStreetMap contributors"
-                />
+          <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-4">
+            <p className="text-gray-400 text-xs">
+              Posts
+            </p>
 
-                {locations.map((location, index) => (
-                  <Marker
-                    key={index}
-                    position={[location.latitude, location.longitude]}
-                  >
-                    <Popup>{location.user_id.name || "User"}</Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
+            <h2 className="text-white text-2xl font-bold">
+              {postList.length}
+            </h2>
+          </div>
+
+          <div className="hidden md:block bg-[#111827] border border-[#1F2937] rounded-2xl p-4">
+            <p className="text-gray-400 text-xs">
+              Status
+            </p>
+
+            <h2 className="text-green-400 text-2xl font-bold">
+              Online
+            </h2>
+          </div>
+        </div>
+
+        {/* MAP CARD */}
+        <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-3 md:p-4">
+
+          <div className="h-[260px] sm:h-[350px] md:h-[500px] rounded-2xl overflow-hidden">
+            <MapContainer
+              className="h-full w-full"
+              center={[currentLocation.lat, currentLocation.long]}
+              zoom={15}
+              zoomControl={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
+
+              {locations.map((location, index) => (
+                <Marker
+                  key={index}
+                  position={[
+                    location.latitude,
+                    location.longitude,
+                  ]}
+                >
+                  <Popup>
+                    {location.user_id.name || "User"}
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+
+          {/* CREATE POST */}
+          <div className="mt-4 bg-[#1F2937] border border-[#374151] rounded-2xl p-3 flex flex-col sm:flex-row gap-3 sm:items-center">
+
+            <div className="flex items-center gap-3 flex-1">
+              <img
+                src="https://i.pravatar.cc/100"
+                alt="profile"
+                className="w-10 h-10 rounded-full"
+              />
+
+              <input
+                type="text"
+                placeholder="What's on your mind?"
+                value={post}
+                onChange={(e) => setPost(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-gray-200 placeholder:text-gray-500 text-sm"
+              />
             </div>
 
-            {/* CREATE POST */}
-            <div className="mt-4 bg-[#F9F9F9] border border-gray-200 rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-              {/* LEFT */}
-              <div className="flex items-center gap-3 flex-1">
-                <img
-                  src="https://i.pravatar.cc/100"
-                  alt="profile"
-                  className="w-11 h-11 rounded-full"
-                />
+            <button
+              onClick={sendPost}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:scale-105 transition-all text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <Send size={18} />
+              Post
+            </button>
+          </div>
 
-                <input
-                  type="text"
-                  placeholder="What's on your mind?"
-                  value={post}
-                  onChange={(e) => setPost(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-gray-700 text-sm md:text-base"
-                />
-              </div>
-
-              {/* BUTTON */}
-              <button
-                onClick={sendPost}
-                className="bg-violet-500 hover:bg-violet-600 transition text-white px-5 md:px-6 py-3 rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <Send size={18} />
-                Post
-              </button>
-            </div>
-
+          {/* POSTS */}
+          <div className="mt-4 flex flex-col gap-4">
             {postList.map((postItem, index) => (
               <Post
                 key={index}
@@ -345,10 +389,12 @@ function Location() {
               />
             ))}
           </div>
+
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default Location;

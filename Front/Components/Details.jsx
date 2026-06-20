@@ -45,63 +45,87 @@ function Details() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] p-3 md:p-6 flex items-center justify-center">
-      {/* MAIN CONTAINER */}
-      <div className="w-full max-w-[1400px] bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-200 grid grid-cols-1 lg:grid-cols-2">
-        {/* LEFT SIDE */}
-        <div className="hidden lg:flex relative bg-gradient-to-br from-[#F8F5FF] to-[#F3F0FF] p-10 flex-col justify-between">
-          {/* TOP */}
-          <div>
-            {/* LOGO */}
-            <div className="w-20 h-20 rounded-full border border-violet-200 flex items-center justify-center">
-              <div className="w-8 h-8 bg-violet-500 rounded-full"></div>
-            </div>
+  <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4">
 
-            {/* TEXT */}
-            <div className="mt-16">
-              <h1 className="text-5xl font-bold text-[#111827] leading-tight">
-                Welcome to
-                <br />
-                <span className="text-violet-600">TalkToMe 👋</span>
+    <div className="w-full max-w-7xl bg-[#111827] border border-[#1F2937] rounded-3xl overflow-hidden shadow-2xl">
+
+      <div className="grid lg:grid-cols-2 min-h-[850px]">
+
+        {/* LEFT SIDE */}
+        <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-violet-900/30 via-[#111827] to-[#0F172A] p-12 flex-col justify-between">
+
+          {/* LOGO */}
+          <div>
+            <div className="flex items-center gap-3">
+
+              <div className="w-4 h-4 rounded-full bg-violet-500"></div>
+
+              <h1 className="text-white text-2xl font-bold">
+                TalkToMe
               </h1>
 
-              <p className="mt-6 text-lg text-gray-500 leading-relaxed max-w-[400px]">
-                Let's complete your profile so others can know you better.
+            </div>
+
+            <div className="mt-24">
+
+              <h1 className="text-5xl font-bold text-white leading-tight">
+                Create Your
+                <br />
+                Social Identity
+              </h1>
+
+              <p className="mt-6 text-lg text-gray-400 max-w-md leading-relaxed">
+                Complete your profile and start connecting
+                with people around you in real time.
               </p>
+
             </div>
           </div>
 
-          {/* BOTTOM DESIGN */}
+          {/* DECORATION */}
           <div className="relative h-[250px]">
-            <div className="absolute left-0 bottom-0 w-full h-[180px] bg-violet-100 rounded-t-[100px] opacity-40"></div>
 
-            <div className="absolute bottom-10 left-10 w-6 h-6 rounded-full bg-violet-500"></div>
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-violet-600/20 blur-3xl rounded-full"></div>
 
-            <div className="absolute bottom-20 right-24 w-5 h-5 rounded-full bg-violet-400"></div>
+            <div className="absolute top-10 right-20 w-32 h-32 bg-purple-500/20 blur-2xl rounded-full"></div>
 
-            <div className="absolute bottom-32 left-40 w-4 h-4 rounded-full bg-violet-300"></div>
+            <div className="absolute bottom-20 right-10 w-24 h-24 bg-violet-400/20 blur-xl rounded-full"></div>
+
           </div>
+
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="p-6 sm:p-10 md:p-14 flex items-center justify-center">
-          <div className="w-full max-w-[550px]">
-            {/* HEADING */}
+        <div className="flex items-center justify-center p-6 sm:p-10 md:p-14">
+
+          <div className="w-full max-w-xl">
+
+            {/* HEADER */}
             <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-bold text-[#111827]">
-                Tell us about yourself
+
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                Complete Your Profile
               </h1>
 
-              <p className="text-gray-500 mt-3 text-sm md:text-base">
-                Add a few details to get started
+              <p className="mt-3 text-gray-400 text-sm md:text-base">
+                Let others know who you are
               </p>
+
             </div>
 
-            {/* PROFILE PHOTO */}
+            {/* PROFILE IMAGE */}
             <div className="mt-10 flex flex-col items-center">
+
               <div className="relative">
-                {/* IMAGE */}
-                <div className="w-32 h-32 rounded-full bg-[#F5F5F7] border border-gray-200 overflow-hidden flex items-center justify-center">
+
+                <div className="
+                  w-32 h-32
+                  rounded-full
+                  bg-[#1F2937]
+                  border-2 border-[#374151]
+                  overflow-hidden
+                  flex items-center justify-center
+                ">
                   {preview ? (
                     <img
                       src={preview}
@@ -109,93 +133,185 @@ function Details() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User size={55} className="text-gray-300" />
+                    <User
+                      size={55}
+                      className="text-gray-500"
+                    />
                   )}
                 </div>
 
-                {/* CAMERA BUTTON */}
-                <label className="absolute bottom-1 right-1 w-10 h-10 bg-violet-500 hover:bg-violet-600 transition rounded-full flex items-center justify-center cursor-pointer shadow-lg">
-                  <Camera size={18} className="text-white" />
+                <label
+                  className="
+                    absolute bottom-1 right-1
+                    w-10 h-10
+                    rounded-full
+                    bg-gradient-to-r
+                    from-violet-600
+                    to-purple-600
+                    flex items-center justify-center
+                    cursor-pointer
+                    shadow-lg
+                  "
+                >
+                  <Camera
+                    size={18}
+                    className="text-white"
+                  />
 
                   <input
                     type="file"
-                    className="hidden"
                     accept="image/*"
+                    className="hidden"
                     onChange={handleImage}
                   />
                 </label>
+
               </div>
 
-              <h1 className="mt-4 font-semibold text-gray-800 text-lg">
-                Add profile photo
-              </h1>
+              <h2 className="mt-4 text-white font-medium">
+                Upload Profile Photo
+              </h2>
 
-              <p className="text-sm text-gray-400 mt-1">
-                JPG, PNG or WEBP. Max size 5MB
+              <p className="text-sm text-gray-500 mt-1">
+                JPG, PNG, WEBP
               </p>
+
             </div>
 
             {/* FORM */}
-            <div className="mt-10 flex flex-col gap-6">
+            <div className="mt-10 space-y-6">
+
               {/* NAME */}
               <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  Your name
+
+                <label className="text-sm font-medium text-gray-300">
+                  Your Name
                 </label>
 
-                <div className="mt-2 flex items-center gap-3 border border-gray-200 rounded-2xl px-4 py-4 focus-within:border-violet-500 transition">
-                  <User size={20} className="text-gray-400" />
+                <div className="
+                  mt-2
+                  bg-[#1F2937]
+                  border border-[#374151]
+                  rounded-2xl
+                  px-4 py-4
+                  flex items-center gap-3
+                  focus-within:border-violet-500
+                ">
+
+                  <User
+                    size={20}
+                    className="text-gray-500"
+                  />
 
                   <input
                     type="text"
-                    onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full outline-none bg-transparent text-gray-700"
+                    onChange={(e) => setName(e.target.value)}
+                    className="
+                      w-full
+                      bg-transparent
+                      outline-none
+                      text-white
+                      placeholder:text-gray-500
+                    "
                   />
+
                 </div>
+
               </div>
 
-              {/* BIO */}
+              {/* ABOUT */}
               <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  What's in your mind?
+
+                <label className="text-sm font-medium text-gray-300">
+                  About You
                 </label>
 
-                <div className="mt-2 border border-gray-200 rounded-2xl px-4 py-4 focus-within:border-violet-500 transition">
+                <div className="
+                  mt-2
+                  bg-[#1F2937]
+                  border border-[#374151]
+                  rounded-2xl
+                  p-4
+                  focus-within:border-violet-500
+                ">
+
                   <div className="flex gap-3">
-                    <PenLine size={20} className="text-gray-400 mt-1" />
+
+                    <PenLine
+                      size={20}
+                      className="text-gray-500 mt-1"
+                    />
 
                     <textarea
-                      placeholder="Share something about yourself..."
                       rows="5"
                       maxLength={150}
-                      className="w-full resize-none outline-none bg-transparent text-gray-700"
+                      placeholder="Tell people something interesting about yourself..."
                       onChange={(e) => setAbout(e.target.value)}
-                    ></textarea>
+                      className="
+                        w-full
+                        bg-transparent
+                        outline-none
+                        resize-none
+                        text-white
+                        placeholder:text-gray-500
+                      "
+                    />
+
                   </div>
 
                   <div className="flex justify-end mt-3">
-                    <span className="text-sm text-gray-400">0/150</span>
+
+                    <span className="text-xs text-gray-500">
+                      {about.length}/150
+                    </span>
+
                   </div>
+
                 </div>
+
               </div>
 
               {/* BUTTON */}
-              <button onClick={submit} className="mt-2 w-full bg-violet-500 hover:bg-violet-600 transition text-white py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg shadow-violet-200">
+              <button
+                onClick={submit}
+                className="
+                  w-full
+                  py-4
+                  rounded-2xl
+                  bg-gradient-to-r
+                  from-violet-600
+                  to-purple-600
+                  text-white
+                  font-semibold
+                  hover:scale-[1.02]
+                  transition-all
+                  flex items-center
+                  justify-center
+                  gap-3
+                "
+              >
                 Continue
-                <ArrowRight size={22} />
+
+                <ArrowRight size={20} />
               </button>
 
-              {/* FOOTER */}
-              <p className="text-center text-sm text-gray-400">
-                You can update this later in settings.
+              <p className="text-center text-sm text-gray-500">
+                You can change this later from settings.
               </p>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
-  );
+
+  </div>
+);
 }
 
 export default Details;

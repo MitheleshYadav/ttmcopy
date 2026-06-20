@@ -42,47 +42,70 @@ function Post({ name, about, userId }) {
       });
   }
 
-  return (
-    <div className="mt-4 flex flex-col gap-3">
-      {/* POST CARD */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* LEFT */}
-        <div className="flex gap-3">
-          <img
-            src="https://i.pravatar.cc/101"
-            alt="profile"
-            className="w-12 h-12 rounded-full"
-          />
+ return (
+  <div className="mt-4">
+    <div className="bg-[#1F2937] border border-[#374151] rounded-2xl p-4 md:p-5 hover:border-violet-500/40 transition-all duration-300">
 
-          <div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+        {/* LEFT SIDE */}
+        <div className="flex items-start gap-4">
+
+          {/* AVATAR */}
+          <div className="relative flex-shrink-0">
+            <img
+              src="https://i.pravatar.cc/101"
+              alt="profile"
+              className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-violet-500"
+            />
+
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border border-[#1F2937] rounded-full"></div>
+          </div>
+
+          {/* USER INFO */}
+          <div className="flex-1">
+
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-semibold text-violet-600">{name}</h1>
+              <h2 className="font-semibold text-violet-400 text-sm md:text-base">
+                {name}
+              </h2>
+
+              <span className="text-xs bg-violet-600/20 text-violet-300 px-2 py-1 rounded-full">
+                Online
+              </span>
             </div>
 
-            <p className="text-gray-800 mt-1 font-medium text-sm md:text-base">
+            <p className="text-gray-200 mt-2 text-sm md:text-base break-words">
               {about}
             </p>
+
           </div>
         </div>
 
         {/* BUTTON */}
-        {userId != senderid && (
+        {userId !== senderid && (
           <button
             onClick={sendRequest}
             disabled={requestSent}
-            className={`px-5 py-3 rounded-xl font-medium w-full md:w-auto
-    ${
-      requestSent
-        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-        : "border border-violet-200 text-violet-600 hover:bg-violet-50"
-    }`}
+            className={`
+              px-5 py-3 rounded-xl font-medium
+              w-full md:w-auto
+              transition-all duration-300
+              ${
+                requestSent
+                  ? "bg-green-600 text-white cursor-not-allowed"
+                  : "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:scale-105"
+              }
+            `}
           >
-            {requestSent ? "Request Sent" : "Send Request"}
+            {requestSent ? "✓ Request Sent" : "Send Request"}
           </button>
         )}
+
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default Post;
